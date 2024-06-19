@@ -27,6 +27,7 @@ once_cell = { workspace = true }
 paste = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
+rkyv = { workspace = true }
 rspack_ast = { path = "../rspack_ast" }
 rspack_collections = { path = "../rspack_collections" }
 rspack_error = { path = "../rspack_error" }
