@@ -5,9 +5,9 @@ use rkyv::{
 
 use crate::{CacheableDeserializer, CacheableSerializer, DeserializeError, SerializeError};
 
-pub struct AsDyn;
+pub struct AsBytes;
 
-pub trait AsDynConverter {
+pub trait AsBytesConverter {
   type Context;
   fn to_bytes(&self, context: &mut Self::Context) -> Result<Vec<u8>, SerializeError>;
   fn from_bytes(s: &[u8], context: &mut Self::Context) -> Result<Self, DeserializeError>
@@ -20,9 +20,9 @@ pub struct AsCacheableResolver {
   len: usize,
 }
 
-impl<T, C> ArchiveWith<T> for AsDyn
+impl<T, C> ArchiveWith<T> for AsBytes
 where
-  T: AsDynConverter<Context = C>,
+  T: AsBytesConverter<Context = C>,
 {
   type Archived = ArchivedVec<u8>;
   type Resolver = AsCacheableResolver;
@@ -38,9 +38,9 @@ where
   }
 }
 
-impl<'a, T, C> SerializeWith<T, CacheableSerializer<'a, C>> for AsDyn
+impl<'a, T, C> SerializeWith<T, CacheableSerializer<'a, C>> for AsBytes
 where
-  T: AsDynConverter<Context = C>,
+  T: AsBytesConverter<Context = C>,
 {
   #[inline]
   fn serialize_with(
@@ -55,16 +55,16 @@ where
   }
 }
 
-impl<'a, T, C> DeserializeWith<ArchivedVec<u8>, T, CacheableDeserializer<'a, C>> for AsDyn
+impl<'a, T, C> DeserializeWith<ArchivedVec<u8>, T, CacheableDeserializer<'a, C>> for AsBytes
 where
-  T: AsDynConverter<Context = C>,
+  T: AsBytesConverter<Context = C>,
 {
   #[inline]
   fn deserialize_with(
     field: &ArchivedVec<u8>,
     de: &mut CacheableDeserializer<'a, C>,
   ) -> Result<T, DeserializeError> {
-    AsDynConverter::from_bytes(field, de.get_context())
+    AsBytesConverter::from_bytes(field, de.get_context())
   }
 }
 

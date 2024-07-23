@@ -21,9 +21,6 @@ pub fn impl_trait(args: CacheableDynArgs, mut input: ItemTrait) -> TokenStream {
   let flag_ident = Ident::new(&format!("{trait_ident}Flag"), trait_ident.span());
   let flag_vis = &input.vis;
 
-  //  input
-  //    .supertraits
-  //    .push(parse_quote!(rspack_cacheable::with::AsDynConverter));
   input.items.push(parse_quote! {
       #[doc(hidden)]
       fn __cacheable_dyn_type_name(&self) -> &'static str;
@@ -44,7 +41,7 @@ pub fn impl_trait(args: CacheableDynArgs, mut input: ItemTrait) -> TokenStream {
       const _: () = {
           use rspack_cacheable::__private::inventory;
           use rspack_cacheable::__private::once_cell;
-          use rspack_cacheable::{with::AsDynConverter, DeserializeError, SerializeError};
+          use rspack_cacheable::{with::AsBytesConverter, DeserializeError, SerializeError};
           type DeserializeFn = fn(&[u8], &mut #context) -> Result<Box<dyn #trait_ident>, DeserializeError>;
 
           #flag_vis struct #flag_ident {
@@ -76,7 +73,7 @@ pub fn impl_trait(args: CacheableDynArgs, mut input: ItemTrait) -> TokenStream {
               }
               map
           });
-          impl AsDynConverter for Box<dyn #trait_ident> {
+          impl AsBytesConverter for Box<dyn #trait_ident> {
               type Context = #context;
               fn to_bytes(&self, context: &mut Self::Context) -> Result<Vec<u8>, SerializeError> {
                   let inner = self.as_ref();

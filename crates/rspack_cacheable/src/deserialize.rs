@@ -7,11 +7,12 @@ use rkyv::{
 
 #[derive(Debug)]
 pub enum DeserializeError {
-  /// A validation error occurred.
+  /// A validation error occurred
   CheckBytesError,
   /// A shared pointer was added multiple times
   DuplicateSharedPointer,
-  //  DeserializeFailed(String),
+  /// A deserialize failed occurred
+  DeserializeFailed(String),
 }
 
 pub struct CacheableDeserializer<'a, C> {

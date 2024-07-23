@@ -119,7 +119,7 @@ fn add_attr_for_field(field: &mut syn::Field) {
           if let Some(syn::GenericArgument::Type(syn::Type::TraitObject(_))) = &arg.args.first() {
             // for Box<dyn xxx>
             field.attrs.push(syn::parse_quote! {
-                #[with(rspack_cacheable::with::AsDyn)]
+                #[with(rspack_cacheable::with::AsBytes)]
             });
             return;
           }

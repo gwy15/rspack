@@ -1,18 +1,24 @@
 use rkyv::{
-  ser::{ScratchSpace, Serializer},
   with::{ArchiveWith, DeserializeWith, SerializeWith},
-  Archive, Deserialize, Fallible, Serialize,
+  Archive, Deserialize, Serialize,
 };
+
+use crate::{CacheableDeserializer, CacheableSerializer, DeserializeError, SerializeError};
 
 pub struct AsCustom;
 
 pub trait AsCustomConverter {
   type S;
   type Context;
-  fn to(&self) -> Self::S;
-  fn from(data: &Self::S, ctx: &mut Self::Context) -> Self
+  fn to(&self, ctx: &mut Self::Context) -> Result<Self::S, SerializeError>;
+  fn from(data: Self::S, ctx: &mut Self::Context) -> Result<Self, DeserializeError>
   where
     Self: Sized;
+}
+
+pub struct AsCustomResolver<O: Archive> {
+  inner: O::Resolver,
+  value: O,
 }
 
 impl<T, O> ArchiveWith<T> for AsCustom
@@ -20,39 +26,50 @@ where
   T: AsCustomConverter<S = O>,
   O: Archive,
 {
-  type Archived = <O as Archive>::Archived;
-  type Resolver = <O as Archive>::Resolver;
-
+  type Archived = O::Archived;
+  type Resolver = AsCustomResolver<O>;
+  #[inline]
   unsafe fn resolve_with(
-    field: &T,
+    _field: &T,
     pos: usize,
     resolver: Self::Resolver,
     out: *mut Self::Archived,
   ) {
-    <O as Archive>::resolve(&field.to(), pos, resolver, out)
+    let AsCustomResolver { inner, value } = resolver;
+    O::resolve(&value, pos, inner, out)
   }
 }
 
-impl<T, O, S> SerializeWith<T, S> for AsCustom
+impl<'a, T, O, C> SerializeWith<T, CacheableSerializer<'a, C>> for AsCustom
 where
-  T: AsCustomConverter<S = O>,
-  O: Archive + Serialize<S>,
-  S: Fallible + ScratchSpace + Serializer + ?Sized,
+  T: AsCustomConverter<S = O, Context = C>,
+  O: Archive + Serialize<CacheableSerializer<'a, C>>,
 {
-  fn serialize_with(field: &T, s: &mut S) -> Result<Self::Resolver, S::Error> {
-    <O as Serialize<S>>::serialize(&field.to(), s)
+  #[inline]
+  fn serialize_with(
+    field: &T,
+    s: &mut CacheableSerializer<'a, C>,
+  ) -> Result<Self::Resolver, SerializeError> {
+    let value = field.to(s.get_context())?;
+    Ok(AsCustomResolver {
+      inner: O::serialize(&value, s)?,
+      value,
+    })
   }
 }
 
-impl<T, O, D> DeserializeWith<<O as Archive>::Archived, T, D> for AsCustom
+impl<'a, T, O, C> DeserializeWith<O::Archived, T, CacheableDeserializer<'a, C>> for AsCustom
 where
-  T: AsCustomConverter<S = O, Context = D>,
+  T: AsCustomConverter<S = O, Context = C>,
   O: Archive,
-  O::Archived: Deserialize<O, D>,
-  D: Fallible + ?Sized,
+  O::Archived: Deserialize<O, CacheableDeserializer<'a, C>>,
 {
-  fn deserialize_with(field: &<O as Archive>::Archived, d: &mut D) -> Result<T, D::Error> {
-    let data = <O::Archived as Deserialize<O, D>>::deserialize(field, d)?;
-    Ok(AsCustomConverter::from(&data, d))
+  #[inline]
+  fn deserialize_with(
+    field: &O::Archived,
+    d: &mut CacheableDeserializer<'a, C>,
+  ) -> Result<T, DeserializeError> {
+    let data = O::Archived::deserialize(field, d)?;
+    AsCustomConverter::from(data, d.get_context())
   }
 }

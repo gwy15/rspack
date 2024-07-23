@@ -18,6 +18,8 @@ pub enum SerializeError {
   ScratchSpaceError(<AllocScratch as Fallible>::Error),
   /// An error occurred while serializing shared memory
   SharedError(<SharedSerializeMap as Fallible>::Error),
+  /// A serialize failed occurred
+  SerializerFailed(String),
 }
 
 pub struct CacheableSerializer<'a, C> {
