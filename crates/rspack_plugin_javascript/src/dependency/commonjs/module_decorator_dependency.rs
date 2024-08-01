@@ -1,9 +1,12 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  create_exports_object_referenced, create_no_exports_referenced, AsContextDependency, Dependency,
-  DependencyId, DependencyTemplate, DependencyType, InitFragmentKey, InitFragmentStage,
-  ModuleDependency, NormalInitFragment, RuntimeGlobals, TemplateContext, TemplateReplaceSource,
+  cache::CacheContext, create_exports_object_referenced, create_no_exports_referenced,
+  AsContextDependency, Dependency, DependencyId, DependencyTemplate, DependencyType,
+  InitFragmentKey, InitFragmentStage, ModuleDependency, NormalInitFragment, RuntimeGlobals,
+  TemplateContext, TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ModuleDecoratorDependency {
   decorator: RuntimeGlobals,
@@ -80,6 +83,7 @@ impl DependencyTemplate for ModuleDecoratorDependency {
 
 impl AsContextDependency for ModuleDecoratorDependency {}
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for ModuleDecoratorDependency {
   fn id(&self) -> &DependencyId {
     &self.id

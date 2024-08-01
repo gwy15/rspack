@@ -6,30 +6,30 @@ use rkyv::{
 
 use crate::{CacheableDeserializer, DeserializeError};
 
-pub struct SkipWithDeserialize;
+pub struct SkipSerialize;
 
-trait SkipDeserialize<C> {
-  fn deserialize(ctx: &mut C) -> Result<Self, DeserializeError>
+pub trait SkipSerializeConverter<C> {
+  fn deserialize(context: &mut C) -> Result<Self, DeserializeError>
   where
     Self: Sized;
 }
 
-impl<F> ArchiveWith<F> for SkipWithDeserialize {
+impl<F> ArchiveWith<F> for SkipSerialize {
   type Archived = ();
   type Resolver = ();
 
   unsafe fn resolve_with(_: &F, _: usize, _: Self::Resolver, _: *mut Self::Archived) {}
 }
 
-impl<F, S: Fallible + ?Sized> SerializeWith<F, S> for SkipWithDeserialize {
+impl<F, S: Fallible + ?Sized> SerializeWith<F, S> for SkipSerialize {
   fn serialize_with(_: &F, _: &mut S) -> Result<(), S::Error> {
     Ok(())
   }
 }
 
-impl<'a, F, C> DeserializeWith<(), F, CacheableDeserializer<'a, C>> for SkipWithDeserialize
+impl<'a, F, C> DeserializeWith<(), F, CacheableDeserializer<'a, C>> for SkipSerialize
 where
-  F: SkipDeserialize<C>,
+  F: SkipSerializeConverter<C>,
 {
   fn deserialize_with(_: &(), de: &mut CacheableDeserializer<C>) -> Result<F, DeserializeError> {
     F::deserialize(de.get_context())

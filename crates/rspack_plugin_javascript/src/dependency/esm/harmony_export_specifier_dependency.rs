@@ -1,16 +1,21 @@
+use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_collections::IdentifierSet;
 use rspack_core::{
-  AsContextDependency, AsModuleDependency, Dependency, DependencyCategory, DependencyId,
-  DependencyTemplate, DependencyType, ExportNameOrSpec, ExportsOfExportsSpec, ExportsSpec,
-  HarmonyExportInitFragment, ModuleGraph, TemplateContext, TemplateReplaceSource, UsedName,
+  cache::CacheContext, AsContextDependency, AsModuleDependency, Dependency, DependencyCategory,
+  DependencyId, DependencyTemplate, DependencyType, ExportNameOrSpec, ExportsOfExportsSpec,
+  ExportsSpec, HarmonyExportInitFragment, ModuleGraph, TemplateContext, TemplateReplaceSource,
+  UsedName,
 };
 use swc_core::ecma::atoms::Atom;
 
 // Create _webpack_require__.d(__webpack_exports__, {}) for each export.
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct HarmonyExportSpecifierDependency {
   id: DependencyId,
+  #[with(AsRefStr)]
   pub name: Atom,
+  #[with(AsRefStr)]
   pub value: Atom, // id
 }
 
@@ -24,6 +29,7 @@ impl HarmonyExportSpecifierDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for HarmonyExportSpecifierDependency {
   fn id(&self) -> &DependencyId {
     &self.id

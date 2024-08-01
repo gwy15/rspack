@@ -1,5 +1,7 @@
 use itertools::Itertools;
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::{Identifier, IdentifierSet};
+use rspack_core::cache::CacheContext;
 use rspack_core::{
   property_access, AsContextDependency, AsModuleDependency, Compilation, Dependency,
   DependencyType, ErrorSpan, ExportNameOrSpec, ExportsOfExportsSpec, ExportsSpec,
@@ -12,12 +14,14 @@ use swc_core::atoms::Atom;
 
 use crate::parser_plugin::JS_DEFAULT_KEYWORD;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub enum DeclarationId {
   Id(String),
   Func(DeclarationInfo),
 }
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct DeclarationInfo {
   range: ErrorSpan,
@@ -35,6 +39,7 @@ impl DeclarationInfo {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct HarmonyExportExpressionDependency {
   id: DependencyId,
@@ -61,6 +66,7 @@ impl HarmonyExportExpressionDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for HarmonyExportExpressionDependency {
   fn dependency_type(&self) -> &DependencyType {
     &DependencyType::EsmExportExpression

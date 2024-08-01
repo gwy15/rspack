@@ -1,9 +1,11 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  AsContextDependency, AsModuleDependency, Dependency, DependencyCategory, DependencyId,
-  DependencyTemplate, DependencyType, ExportNameOrSpec, ExportSpec, ExportsOfExportsSpec,
-  ExportsSpec, TemplateContext, TemplateReplaceSource,
+  cache::CacheContext, AsContextDependency, AsModuleDependency, Dependency, DependencyCategory,
+  DependencyId, DependencyTemplate, DependencyType, ExportNameOrSpec, ExportSpec,
+  ExportsOfExportsSpec, ExportsSpec, TemplateContext, TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct CssLocalIdentDependency {
   id: DependencyId,
@@ -25,6 +27,7 @@ impl CssLocalIdentDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for CssLocalIdentDependency {
   fn id(&self) -> &DependencyId {
     &self.id

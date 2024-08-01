@@ -1,17 +1,24 @@
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsRefStr, AsTuple2, AsVec},
+};
 use rspack_core::{
-  property_access, AsContextDependency, Dependency, DependencyCategory, DependencyId,
-  DependencyTemplate, DependencyType, ExtendedReferencedExport, ModuleDependency, ModuleGraph,
-  RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource, UsedName,
+  cache::CacheContext, property_access, AsContextDependency, Dependency, DependencyCategory,
+  DependencyId, DependencyTemplate, DependencyType, ExtendedReferencedExport, ModuleDependency,
+  ModuleGraph, RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource, UsedName,
 };
 use swc_core::atoms::Atom;
 
 use super::ExportsBase;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct CommonJsSelfReferenceDependency {
   id: DependencyId,
+  #[with(AsTuple2)]
   range: (u32, u32),
   base: ExportsBase,
+  #[with(AsVec<AsRefStr>)]
   names: Vec<Atom>,
   is_call: bool,
 }
@@ -28,6 +35,7 @@ impl CommonJsSelfReferenceDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for CommonJsSelfReferenceDependency {
   fn id(&self) -> &DependencyId {
     &self.id

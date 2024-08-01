@@ -5,6 +5,10 @@ use std::{convert::From, fmt, ops::Deref};
 use dashmap::{DashMap, DashSet};
 use hashlink::{LinkedHashMap, LinkedHashSet};
 use indexmap::{IndexMap, IndexSet};
+use rspack_cacheable::{
+  cacheable,
+  with::{AsRefStr, AsRefStrConverter},
+};
 use serde::Serialize;
 use ustr::Ustr;
 
@@ -29,6 +33,7 @@ pub type IdentifierIndexSet = IndexSet<Identifier, BuildHasherDefault<Identifier
 pub type IdentifierDashSet = DashSet<Identifier, BuildHasherDefault<IdentifierHasher>>;
 pub type IdentifierLinkedSet = LinkedHashSet<Identifier, BuildHasherDefault<IdentifierHasher>>;
 
+#[cacheable(with=AsRefStr)]
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize)]
 pub struct Identifier(Ustr);
 
@@ -84,5 +89,17 @@ impl fmt::Display for Identifier {
   /// The result of `to_string` should be the same as the result of [fmt::Display::fmt].
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.to_string())
+  }
+}
+
+impl AsRefStrConverter for Identifier {
+  fn as_str(&self) -> &str {
+    self.0.as_str()
+  }
+  fn from_str(s: &str) -> Self
+  where
+    Self: Sized,
+  {
+    Self::from(s)
   }
 }

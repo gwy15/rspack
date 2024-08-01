@@ -6,6 +6,7 @@ use std::{
 };
 
 use miette::{GraphicalTheme, IntoDiagnostic, MietteDiagnostic};
+use rspack_cacheable::cacheable;
 use rspack_collections::Identifier;
 use swc_core::common::{SourceMap, Span};
 
@@ -62,12 +63,14 @@ impl fmt::Display for RspackSeverity {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy)]
 pub struct SourcePosition {
   pub line: usize,
   pub column: usize,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy)]
 pub struct ErrorLocation {
   pub start: SourcePosition,

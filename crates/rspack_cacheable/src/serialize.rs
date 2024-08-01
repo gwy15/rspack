@@ -150,5 +150,6 @@ where
 {
   let mut serializer = CacheableSerializer::new(ctx);
   serializer.serialize_value(data)?;
+  // TODO try return inner without to_vec to improve performance
   Ok(serializer.serializer.into_inner().to_vec())
 }

@@ -1,9 +1,12 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  get_chunk_from_ukey, AsContextDependency, Dependency, DependencyCategory, DependencyId,
-  DependencyTemplate, DependencyType, ErrorSpan, ExtendedReferencedExport, ModuleDependency,
-  ModuleGraph, RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource,
+  cache::CacheContext, get_chunk_from_ukey, AsContextDependency, Dependency, DependencyCategory,
+  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ExtendedReferencedExport,
+  ModuleDependency, ModuleGraph, RuntimeGlobals, RuntimeSpec, TemplateContext,
+  TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct WorkerDependency {
   start: u32,
@@ -33,6 +36,7 @@ impl WorkerDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for WorkerDependency {
   fn id(&self) -> &DependencyId {
     &self.id

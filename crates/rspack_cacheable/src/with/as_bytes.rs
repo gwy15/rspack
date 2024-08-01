@@ -7,10 +7,9 @@ use crate::{CacheableDeserializer, CacheableSerializer, DeserializeError, Serial
 
 pub struct AsBytes;
 
-pub trait AsBytesConverter {
-  type Context;
-  fn to_bytes(&self, context: &mut Self::Context) -> Result<Vec<u8>, SerializeError>;
-  fn from_bytes(s: &[u8], context: &mut Self::Context) -> Result<Self, DeserializeError>
+pub trait AsBytesConverter<C> {
+  fn to_bytes(&self, context: &mut C) -> Result<Vec<u8>, SerializeError>;
+  fn from_bytes(s: &[u8], context: &mut C) -> Result<Self, DeserializeError>
   where
     Self: Sized;
 }
@@ -20,10 +19,7 @@ pub struct AsCacheableResolver {
   len: usize,
 }
 
-impl<T, C> ArchiveWith<T> for AsBytes
-where
-  T: AsBytesConverter<Context = C>,
-{
+impl<T> ArchiveWith<T> for AsBytes {
   type Archived = ArchivedVec<u8>;
   type Resolver = AsCacheableResolver;
 
@@ -40,7 +36,7 @@ where
 
 impl<'a, T, C> SerializeWith<T, CacheableSerializer<'a, C>> for AsBytes
 where
-  T: AsBytesConverter<Context = C>,
+  T: AsBytesConverter<C>,
 {
   #[inline]
   fn serialize_with(
@@ -57,7 +53,7 @@ where
 
 impl<'a, T, C> DeserializeWith<ArchivedVec<u8>, T, CacheableDeserializer<'a, C>> for AsBytes
 where
-  T: AsBytesConverter<Context = C>,
+  T: AsBytesConverter<C>,
 {
   #[inline]
   fn deserialize_with(
@@ -69,51 +65,54 @@ where
 }
 
 // for rspack_source
-/*use std::sync::Arc;
+use std::sync::Arc;
 
 use rspack_sources::RawSource;
-impl Cacheable for rspack_sources::BoxSource {
-  fn serialize(&self) -> Vec<u8> {
+
+use crate::utils::{TypeWrapper, TypeWrapperRef};
+
+impl<C> AsBytesConverter<C> for rspack_sources::BoxSource {
+  fn to_bytes(&self, context: &mut C) -> Result<Vec<u8>, SerializeError> {
     let inner = self.as_ref().as_any();
-    let mut data: Option<CacheableDynData> = None;
+    let mut data: Option<TypeWrapperRef> = None;
     if let Some(raw_source) = inner.downcast_ref::<rspack_sources::RawSource>() {
       match raw_source {
         RawSource::Buffer(buf) => {
           // TODO try avoid clone
-          data = Some(CacheableDynData(
-            String::from("RawSource::Buffer"),
-            buf.clone(),
-          ));
+          data = Some(TypeWrapperRef {
+            type_name: "RawSource::Buffer",
+            bytes: buf,
+          });
         }
         RawSource::Source(source) => {
-          data = Some(CacheableDynData(
-            String::from("RawSource::Source"),
-            source.as_bytes().to_vec(),
-          ));
+          data = Some(TypeWrapperRef {
+            type_name: "RawSource::Source",
+            bytes: source.as_bytes(),
+          });
         }
       }
       //    } else if let Some() = inner.downcast_ref::<rspack_sources::RawSource>() {
     }
 
     if let Some(data) = data {
-      to_bytes(&data)
+      crate::to_bytes(&data, context)
     } else {
       panic!("unsupport box source")
     }
   }
-  fn deserialize(bytes: &[u8]) -> Self
+  fn from_bytes(s: &[u8], context: &mut C) -> Result<Self, DeserializeError>
   where
     Self: Sized,
   {
-    let CacheableDynData(type_name, data) = from_bytes(bytes);
-    match type_name.as_str() {
-      "RawSource::Buffer" => Arc::new(RawSource::Buffer(data)),
+    let TypeWrapper { type_name, bytes } = crate::from_bytes(s, context)?;
+    Ok(match type_name.as_str() {
+      "RawSource::Buffer" => Arc::new(RawSource::Buffer(bytes)),
       "RawSource::Source" => Arc::new(RawSource::Source(
-        String::from_utf8(data).expect("convert to string failed"),
+        String::from_utf8(bytes).expect("unexpect bytes"),
       )),
       _ => {
         panic!("unsupport box source")
       }
-    }
+    })
   }
-}*/
+}

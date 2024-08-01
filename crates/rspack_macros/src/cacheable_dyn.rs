@@ -41,7 +41,7 @@ pub fn impl_trait(args: CacheableDynArgs, mut input: ItemTrait) -> TokenStream {
       const _: () = {
           use rspack_cacheable::__private::inventory;
           use rspack_cacheable::__private::once_cell;
-          use rspack_cacheable::{with::AsBytesConverter, DeserializeError, SerializeError};
+          use rspack_cacheable::{with::AsBytesConverter, utils::{TypeWrapper, TypeWrapperRef}, DeserializeError, SerializeError};
           type DeserializeFn = fn(&[u8], &mut #context) -> Result<Box<dyn #trait_ident>, DeserializeError>;
 
           #flag_vis struct #flag_ident {
@@ -73,17 +73,20 @@ pub fn impl_trait(args: CacheableDynArgs, mut input: ItemTrait) -> TokenStream {
               }
               map
           });
-          impl AsBytesConverter for Box<dyn #trait_ident> {
-              type Context = #context;
-              fn to_bytes(&self, context: &mut Self::Context) -> Result<Vec<u8>, SerializeError> {
+          impl AsBytesConverter<#context> for Box<dyn #trait_ident> {
+              fn to_bytes(&self, context: &mut #context) -> Result<Vec<u8>, SerializeError> {
                   let inner = self.as_ref();
-                  let data = (String::from(inner.__cacheable_dyn_type_name()), inner.__cacheable_dyn_to_data(context)?);
+                  let bytes = inner.__cacheable_dyn_to_data(context)?;
+                  let data = TypeWrapperRef {
+                      type_name: inner.__cacheable_dyn_type_name(),
+                      bytes: &bytes
+                  };
                   rspack_cacheable::to_bytes(&data, context)
               }
-              fn from_bytes(bytes: &[u8], context: &mut Self::Context) -> Result<Self, DeserializeError> where Self: Sized {
-                  let (name, data) = rspack_cacheable::from_bytes::<(String, Vec<u8>), #context>(bytes, context)?;
-                  let deserialize_fn = REGISTRY.get(name.as_str()).expect("unsupport data type when deserialize");
-                  deserialize_fn(&data, context)
+              fn from_bytes(bytes: &[u8], context: &mut #context) -> Result<Self, DeserializeError> where Self: Sized {
+                  let TypeWrapper { type_name, bytes } = rspack_cacheable::from_bytes::<TypeWrapper, #context>(bytes, context)?;
+                  let deserialize_fn = REGISTRY.get(type_name.as_str()).expect("unsupport data type when deserialize");
+                  deserialize_fn(&bytes, context)
               }
           }
       };
@@ -93,11 +96,17 @@ pub fn impl_trait(args: CacheableDynArgs, mut input: ItemTrait) -> TokenStream {
 
 pub fn impl_impl(args: CacheableDynArgs, mut input: ItemImpl) -> TokenStream {
   let context = &args.context;
-  let trait_ident = &input.trait_.as_ref().unwrap().1;
+  let trait_ident = &input.trait_.as_ref().expect("should have trait ident").1;
   let target_ident = &input.self_ty;
   let target_ident_string = match &*input.self_ty {
     Type::Path(inner) => {
-      let name = &inner.path.segments.last().unwrap().ident.to_string();
+      let name = &inner
+        .path
+        .segments
+        .last()
+        .expect("should have segments")
+        .ident
+        .to_string();
       quote! {#name}
     }
     _ => {

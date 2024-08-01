@@ -1,9 +1,11 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  module_id, AsContextDependency, Dependency, DependencyCategory, DependencyId, DependencyTemplate,
-  DependencyType, ErrorSpan, ExtendedReferencedExport, ModuleDependency, ModuleGraph, RuntimeSpec,
-  TemplateContext, TemplateReplaceSource,
+  cache::CacheContext, module_id, AsContextDependency, Dependency, DependencyCategory,
+  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ExtendedReferencedExport,
+  ModuleDependency, ModuleGraph, RuntimeSpec, TemplateContext, TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct RequireResolveDependency {
   pub start: u32,
@@ -36,6 +38,7 @@ impl RequireResolveDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for RequireResolveDependency {
   fn id(&self) -> &DependencyId {
     &self.id

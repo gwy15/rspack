@@ -1,10 +1,12 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory, DependencyId,
-  DependencyType, ModuleDependency,
+  cache::CacheContext, AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory,
+  DependencyId, DependencyType, ModuleDependency,
 };
 
 use super::provide_shared_plugin::ProvideVersion;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ProvideSharedDependency {
   id: DependencyId,
@@ -44,6 +46,7 @@ impl ProvideSharedDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for ProvideSharedDependency {
   fn id(&self) -> &DependencyId {
     &self.id

@@ -10,13 +10,14 @@ use rkyv::{
   Archive, CheckBytes, Fallible, Serialize,
 };
 
-use crate::{CacheableDeserializer, DeserializeError};
+use crate::{with::AsCacheable, CacheableDeserializer, DeserializeError};
 
-pub struct AsMap<WK, WV> {
+pub struct AsMap<WK = AsCacheable, WV = AsCacheable> {
   _key: WK,
   _value: WV,
 }
 
+#[allow(clippy::len_without_is_empty)]
 pub trait AsMapConverter {
   type Key;
   type Value;
@@ -30,8 +31,8 @@ pub trait AsMapConverter {
 }
 
 pub struct Entry<K, V, WK, WV> {
-  pub key: K,
-  pub value: V,
+  key: K,
+  value: V,
   // with for key
   _key: PhantomData<WK>,
   // with for value
@@ -170,5 +171,25 @@ where
     data: impl ExactSizeIterator<Item = Result<(Self::Key, Self::Value), DeserializeError>>,
   ) -> Result<Self, DeserializeError> {
     data.collect::<Result<rustc_hash::FxHashMap<_, _>, DeserializeError>>()
+  }
+}
+
+// for hashlink::LinkedHashMap
+impl<K, V> AsMapConverter for hashlink::LinkedHashMap<K, V>
+where
+  K: std::cmp::Eq + std::hash::Hash,
+{
+  type Key = K;
+  type Value = V;
+  fn len(&self) -> usize {
+    self.len()
+  }
+  fn iter(&self) -> impl ExactSizeIterator<Item = (&Self::Key, &Self::Value)> {
+    self.iter()
+  }
+  fn from(
+    data: impl ExactSizeIterator<Item = Result<(Self::Key, Self::Value), DeserializeError>>,
+  ) -> Result<Self, DeserializeError> {
+    data.collect::<Result<hashlink::LinkedHashMap<_, _>, DeserializeError>>()
   }
 }

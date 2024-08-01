@@ -1,4 +1,5 @@
 pub use rspack_macros::{cacheable, cacheable_dyn};
+pub mod utils;
 pub mod with;
 
 mod deserialize;

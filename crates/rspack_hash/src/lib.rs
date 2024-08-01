@@ -5,6 +5,10 @@ use std::{
 
 use data_encoding::HEXLOWER_PERMISSIVE;
 use md4::Digest;
+use rspack_cacheable::{
+  cacheable,
+  with::{AsRefStr, AsRefStrConverter},
+};
 use smol_str::SmolStr;
 use xxhash_rust::xxh64::Xxh64;
 
@@ -121,6 +125,7 @@ impl Hasher for RspackHash {
   }
 }
 
+#[cacheable(with=AsRefStr)]
 #[derive(Debug, Clone, Eq)]
 pub struct RspackHashDigest {
   encoded: SmolStr,
@@ -153,5 +158,19 @@ impl Hash for RspackHashDigest {
 impl PartialEq for RspackHashDigest {
   fn eq(&self, other: &Self) -> bool {
     self.encoded == other.encoded
+  }
+}
+
+impl AsRefStrConverter for RspackHashDigest {
+  fn as_str(&self) -> &str {
+    self.encoded.as_str()
+  }
+  fn from_str(s: &str) -> Self
+  where
+    Self: Sized,
+  {
+    Self {
+      encoded: From::from(s),
+    }
   }
 }

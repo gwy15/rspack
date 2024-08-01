@@ -66,3 +66,16 @@ impl AsRefStrConverter for swc_core::ecma::atoms::Atom {
     Self::from(s)
   }
 }
+
+// for Cow<'static, str>
+impl AsRefStrConverter for std::borrow::Cow<'static, str> {
+  fn as_str(&self) -> &str {
+    self.as_ref()
+  }
+  fn from_str(s: &str) -> Self
+  where
+    Self: Sized,
+  {
+    Self::from(String::from(s))
+  }
+}

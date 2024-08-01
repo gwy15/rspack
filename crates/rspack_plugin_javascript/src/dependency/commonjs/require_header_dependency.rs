@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
+use rspack_cacheable::{cacheable, cacheable_dyn};
+use rspack_core::cache::CacheContext;
 use rspack_core::{AsContextDependency, AsModuleDependency, Dependency};
 use rspack_core::{DependencyId, DependencyLocation};
 use rspack_core::{DependencyTemplate, RuntimeGlobals, TemplateContext};
 use swc_core::common::SourceMap;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct RequireHeaderDependency {
   id: DependencyId,
@@ -21,6 +24,7 @@ impl RequireHeaderDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for RequireHeaderDependency {
   fn id(&self) -> &DependencyId {
     &self.id

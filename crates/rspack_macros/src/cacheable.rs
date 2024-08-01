@@ -21,25 +21,7 @@ impl Parse for CacheableArgs {
 }
 
 pub fn impl_cacheable(tokens: TokenStream) -> TokenStream {
-  let mut input = parse_macro_input!(tokens as Item);
-
-  // add attr for some field
-  match &mut input {
-    Item::Enum(input) => {
-      for v in input.variants.iter_mut() {
-        for f in v.fields.iter_mut() {
-          add_attr_for_field(f);
-        }
-      }
-    }
-    Item::Struct(input) => {
-      for f in input.fields.iter_mut() {
-        add_attr_for_field(f);
-      }
-    }
-    _ => panic!("expect enum or struct"),
-  }
-
+  let input = parse_macro_input!(tokens as Item);
   quote! {
       #[derive(
           rspack_cacheable::__private::rkyv::Archive,
@@ -109,82 +91,4 @@ pub fn impl_cacheable_with(tokens: TokenStream, with: syn::Path) -> TokenStream 
       };
   }
   .into()
-}
-
-fn add_attr_for_field(field: &mut syn::Field) {
-  if let syn::Type::Path(ty_path) = &field.ty {
-    if let Some(seg) = &ty_path.path.segments.last() {
-      if seg.ident == "Box" {
-        if let syn::PathArguments::AngleBracketed(arg) = &seg.arguments {
-          if let Some(syn::GenericArgument::Type(syn::Type::TraitObject(_))) = &arg.args.first() {
-            // for Box<dyn xxx>
-            field.attrs.push(syn::parse_quote! {
-                #[with(rspack_cacheable::with::AsBytes)]
-            });
-            return;
-          }
-        }
-      }
-
-      if seg.ident == "Option" {
-        if let syn::PathArguments::AngleBracketed(arg) = &seg.arguments {
-          if let Some(syn::GenericArgument::Type(syn::Type::Path(sub_path))) = &arg.args.last() {
-            if let Some(seg) = sub_path.path.segments.last() {
-              if seg.ident == "JsonValue" {
-                // for Option<JsonValue>
-                field.attrs.push(syn::parse_quote! {
-                    #[with(rspack_cacheable::with::AsOption<rspack_cacheable::with::AsString>)]
-                });
-                return;
-              }
-
-              if seg.ident == "BoxSource" {
-                // for Option<BoxSource>
-                field.attrs.push(syn::parse_quote! {
-                    #[with(rspack_cacheable::with::AsOption<rspack_cacheable::with::AsCacheable>)]
-                });
-                return;
-              }
-            }
-          }
-        }
-      }
-
-      if seg.ident == "HashSet" {
-        if let syn::PathArguments::AngleBracketed(arg) = &seg.arguments {
-          if let Some(syn::GenericArgument::Type(syn::Type::Path(sub_path))) = &arg.args.last() {
-            if sub_path.path.is_ident("PathBuf") {
-              // for HashSet<PathBuf>
-              field.attrs.push(syn::parse_quote! {
-                  #[with(rspack_cacheable::with::AsVec<rspack_cacheable::with::AsString>)]
-              });
-              return;
-            }
-            if sub_path.path.is_ident("Atom") {
-              // for HashSet<Atom>
-              field.attrs.push(syn::parse_quote! {
-                  #[with(rspack_cacheable::with::AsVec<rspack_cacheable::with::AsRefStr>)]
-              });
-              return;
-            }
-          }
-        }
-      }
-
-      if seg.ident == "BoxSource" {
-        field.attrs.push(syn::parse_quote! {
-            #[with(rspack_cacheable::with::AsCacheable)]
-        });
-        return;
-      }
-
-      if seg.ident == "RwLock" {
-        // TODO
-        field.attrs.push(syn::parse_quote! {
-            #[with(rspack_cacheable::with::Skip)]
-        });
-        return;
-      }
-    }
-  }
 }

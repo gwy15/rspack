@@ -1,14 +1,20 @@
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsTuple2, AsVec},
+};
 use rspack_core::{
-  AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory, DependencyId,
-  DependencyType, ModuleDependency,
+  cache::CacheContext, AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory,
+  DependencyId, DependencyType, ModuleDependency,
 };
 
 use crate::ExposeOptions;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ContainerEntryDependency {
   id: DependencyId,
   pub name: String,
+  #[with(AsVec<AsTuple2>)]
   pub exposes: Vec<(String, ExposeOptions)>,
   pub share_scope: String,
   resource_identifier: String,
@@ -34,6 +40,7 @@ impl ContainerEntryDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for ContainerEntryDependency {
   fn id(&self) -> &DependencyId {
     &self.id

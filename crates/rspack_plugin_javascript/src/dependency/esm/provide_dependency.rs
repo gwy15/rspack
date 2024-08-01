@@ -1,4 +1,9 @@
 use itertools::Itertools;
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsRefStr, AsVec},
+};
+use rspack_core::cache::CacheContext;
 use rspack_core::{
   create_exports_object_referenced, module_raw, ExtendedReferencedExport, ModuleGraph,
   NormalInitFragment, RuntimeSpec, UsedName,
@@ -9,13 +14,16 @@ use rspack_core::{DependencyType, ErrorSpan};
 use rspack_core::{ModuleDependency, TemplateContext, TemplateReplaceSource};
 use swc_core::atoms::Atom;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ProvideDependency {
   start: u32,
   end: u32,
   id: DependencyId,
+  #[with(AsRefStr)]
   request: Atom,
   identifier: String,
+  #[with(AsVec<AsRefStr>)]
   ids: Vec<Atom>,
 }
 
@@ -32,6 +40,7 @@ impl ProvideDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for ProvideDependency {
   fn id(&self) -> &DependencyId {
     &self.id

@@ -2,17 +2,22 @@ use std::hash::BuildHasherDefault;
 use std::sync::Arc;
 
 use indexmap::{IndexMap, IndexSet};
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsOption, AsRefStr, AsVec},
+};
 use rspack_collections::IdentifierSet;
 use rspack_core::{
-  create_exports_object_referenced, create_no_exports_referenced, filter_runtime, get_exports_type,
-  process_export_info, property_access, property_name, string_of_used_name, AsContextDependency,
-  ConditionalInitFragment, ConnectionState, Dependency, DependencyCategory, DependencyCondition,
-  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ExportInfoId, ExportInfoProvided,
-  ExportNameOrSpec, ExportPresenceMode, ExportSpec, ExportsInfoId, ExportsOfExportsSpec,
-  ExportsSpec, ExportsType, ExtendedReferencedExport, HarmonyExportInitFragment, ImportAttributes,
-  InitFragmentExt, InitFragmentKey, InitFragmentStage, JavascriptParserOptions, ModuleDependency,
-  ModuleGraph, ModuleIdentifier, NormalInitFragment, RuntimeCondition, RuntimeGlobals, RuntimeSpec,
-  Template, TemplateContext, TemplateReplaceSource, UsageState, UsedName,
+  cache::CacheContext, create_exports_object_referenced, create_no_exports_referenced,
+  filter_runtime, get_exports_type, process_export_info, property_access, property_name,
+  string_of_used_name, AsContextDependency, ConditionalInitFragment, ConnectionState, Dependency,
+  DependencyCategory, DependencyCondition, DependencyId, DependencyTemplate, DependencyType,
+  ErrorSpan, ExportInfoId, ExportInfoProvided, ExportNameOrSpec, ExportPresenceMode, ExportSpec,
+  ExportsInfoId, ExportsOfExportsSpec, ExportsSpec, ExportsType, ExtendedReferencedExport,
+  HarmonyExportInitFragment, ImportAttributes, InitFragmentExt, InitFragmentKey, InitFragmentStage,
+  JavascriptParserOptions, ModuleDependency, ModuleGraph, ModuleIdentifier, NormalInitFragment,
+  RuntimeCondition, RuntimeGlobals, RuntimeSpec, Template, TemplateContext, TemplateReplaceSource,
+  UsageState, UsedName,
 };
 use rspack_error::{
   miette::{MietteDiagnostic, Severity},
@@ -31,11 +36,15 @@ use super::{
 // case1: `import { a } from 'a'; export { a }`
 // case2: `export { a } from 'a';`
 // case3: `export * from 'a'`
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct HarmonyExportImportedSpecifierDependency {
   pub id: DependencyId,
+  #[with(AsVec<AsRefStr>)]
   pub ids: Vec<Atom>,
+  #[with(AsOption<AsRefStr>)]
   pub name: Option<Atom>,
+  #[with(AsRefStr)]
   pub request: Atom,
   pub export_all: bool,
   pub source_order: i32,
@@ -1053,6 +1062,7 @@ impl DependencyTemplate for HarmonyExportImportedSpecifierDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for HarmonyExportImportedSpecifierDependency {
   fn id(&self) -> &DependencyId {
     &self.id

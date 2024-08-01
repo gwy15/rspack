@@ -2,8 +2,10 @@ use std::borrow::Cow;
 use std::hash::Hash;
 
 use async_trait::async_trait;
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::{Identifiable, Identifier};
 use rspack_core::{
+  cache::CacheContext,
   impl_module_meta_info, impl_source_map_config,
   rspack_sources::{RawSource, Source, SourceExt},
   AsyncDependenciesBlockIdentifier, BoxDependency, BuildContext, BuildInfo, BuildMeta, BuildResult,
@@ -23,6 +25,7 @@ use crate::{
 };
 
 #[impl_source_map_config]
+#[cacheable]
 #[derive(Debug)]
 pub struct RemoteModule {
   blocks: Vec<AsyncDependenciesBlockIdentifier>,
@@ -98,6 +101,7 @@ impl DependenciesBlock for RemoteModule {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 #[async_trait]
 impl Module for RemoteModule {
   impl_module_meta_info!();

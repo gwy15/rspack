@@ -1,10 +1,12 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::IdentifierSet;
 use rspack_core::{
-  filter_runtime, runtime_condition_expression, AsContextDependency, AsModuleDependency,
-  ConnectionState, Dependency, DependencyId, DependencyTemplate, ModuleGraph, ModuleIdentifier,
-  TemplateContext, TemplateReplaceSource, UsageState, UsedByExports, UsedName,
+  cache::CacheContext, filter_runtime, runtime_condition_expression, AsContextDependency,
+  AsModuleDependency, ConnectionState, Dependency, DependencyId, DependencyTemplate, ModuleGraph,
+  ModuleIdentifier, TemplateContext, TemplateReplaceSource, UsageState, UsedByExports, UsedName,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct PureExpressionDependency {
   pub start: u32,
@@ -26,6 +28,7 @@ impl PureExpressionDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for PureExpressionDependency {
   fn id(&self) -> &rspack_core::DependencyId {
     &self.id

@@ -7,12 +7,34 @@ use rkyv::{
   Archive, Fallible, Serialize,
 };
 
-use crate::{CacheableDeserializer, DeserializeError};
+use crate::{with::AsCacheable, CacheableDeserializer, DeserializeError};
 
-pub struct AsVec<T> {
+struct RefWrapper<'o, A, O>(&'o O, PhantomData<A>);
+
+impl<A: ArchiveWith<O>, O> Archive for RefWrapper<'_, A, O> {
+  type Archived = A::Archived;
+  type Resolver = A::Resolver;
+
+  unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
+    A::resolve_with(self.0, pos, resolver, out)
+  }
+}
+
+impl<A, O, S> Serialize<S> for RefWrapper<'_, A, O>
+where
+  A: ArchiveWith<O> + SerializeWith<O, S>,
+  S: Fallible + Serializer + ?Sized,
+{
+  fn serialize(&self, s: &mut S) -> Result<Self::Resolver, S::Error> {
+    A::serialize_with(self.0, s)
+  }
+}
+
+pub struct AsVec<T = AsCacheable> {
   _inner: T,
 }
 
+#[allow(clippy::len_without_is_empty)]
 pub trait AsVecConverter {
   type Item;
   fn len(&self) -> usize;
@@ -49,29 +71,6 @@ where
   A: ArchiveWith<O> + SerializeWith<O, S>,
 {
   fn serialize_with(field: &T, s: &mut S) -> Result<Self::Resolver, S::Error> {
-    // Wrapper for O so that we have an Archive and Serialize implementation
-    // and ArchivedVec::serialize_from_* is happy about the bound constraints
-    struct RefWrapper<'o, A, O>(&'o O, PhantomData<A>);
-
-    impl<A: ArchiveWith<O>, O> Archive for RefWrapper<'_, A, O> {
-      type Archived = A::Archived;
-      type Resolver = A::Resolver;
-
-      unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-        A::resolve_with(self.0, pos, resolver, out)
-      }
-    }
-
-    impl<A, O, S> Serialize<S> for RefWrapper<'_, A, O>
-    where
-      A: ArchiveWith<O> + SerializeWith<O, S>,
-      S: Fallible + Serializer + ?Sized,
-    {
-      fn serialize(&self, s: &mut S) -> Result<Self::Resolver, S::Error> {
-        A::serialize_with(self.0, s)
-      }
-    }
-
     let iter = field
       .iter()
       .map(|value| RefWrapper::<'_, A, O>(value, PhantomData));
@@ -91,6 +90,22 @@ where
     d: &mut CacheableDeserializer<'a, C>,
   ) -> Result<T, DeserializeError> {
     T::from(field.iter().map(|item| A::deserialize_with(item, d)))
+  }
+}
+
+// for Vec
+impl<T> AsVecConverter for Vec<T> {
+  type Item = T;
+  fn len(&self) -> usize {
+    self.len()
+  }
+  fn iter(&self) -> impl ExactSizeIterator<Item = &Self::Item> {
+    <[T]>::iter(self)
+  }
+  fn from(
+    data: impl ExactSizeIterator<Item = Result<Self::Item, DeserializeError>>,
+  ) -> Result<Self, DeserializeError> {
+    data.collect::<Result<Vec<_>, DeserializeError>>()
   }
 }
 

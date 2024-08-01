@@ -1,13 +1,15 @@
 use std::{borrow::Cow, hash::Hash};
 
 use async_trait::async_trait;
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::{Identifiable, Identifier};
 use rspack_core::{
-  async_module_factory, impl_module_meta_info, impl_source_map_config, rspack_sources::Source,
-  sync_module_factory, AsyncDependenciesBlock, AsyncDependenciesBlockIdentifier, BoxDependency,
-  BuildContext, BuildInfo, BuildMeta, BuildResult, CodeGenerationResult, Compilation,
-  ConcatenationScope, Context, DependenciesBlock, DependencyId, FactoryMeta, LibIdentOptions,
-  Module, ModuleIdentifier, ModuleType, RuntimeGlobals, RuntimeSpec, SourceType,
+  async_module_factory, cache::CacheContext, impl_module_meta_info, impl_source_map_config,
+  rspack_sources::Source, sync_module_factory, AsyncDependenciesBlock,
+  AsyncDependenciesBlockIdentifier, BoxDependency, BuildContext, BuildInfo, BuildMeta, BuildResult,
+  CodeGenerationResult, Compilation, ConcatenationScope, Context, DependenciesBlock, DependencyId,
+  FactoryMeta, LibIdentOptions, Module, ModuleIdentifier, ModuleType, RuntimeGlobals, RuntimeSpec,
+  SourceType,
 };
 use rspack_error::{impl_empty_diagnosable_trait, Diagnostic, Result};
 use rspack_hash::RspackHash;
@@ -22,6 +24,7 @@ use super::{
 };
 
 #[impl_source_map_config]
+#[cacheable]
 #[derive(Debug)]
 pub struct ProvideSharedModule {
   blocks: Vec<AsyncDependenciesBlockIdentifier>,
@@ -94,6 +97,7 @@ impl DependenciesBlock for ProvideSharedModule {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 #[async_trait]
 impl Module for ProvideSharedModule {
   impl_module_meta_info!();

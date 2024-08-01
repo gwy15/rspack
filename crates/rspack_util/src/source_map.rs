@@ -1,8 +1,11 @@
 use bitflags::bitflags;
 
+#[rspack_cacheable::cacheable]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct SourceMapKind(u8);
+
 bitflags! {
-  #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-  pub struct SourceMapKind: u8 {
+  impl SourceMapKind: u8 {
       const SourceMap = 1 << 0;
       const SimpleSourceMap = 1 << 1;
       const Cheap = 1 << 2;

@@ -1,7 +1,11 @@
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsOption, AsRefStr, AsVec},
+};
 use rspack_core::{
-  module_namespace_promise, AsContextDependency, Dependency, DependencyCategory, DependencyId,
-  DependencyTemplate, DependencyType, ErrorSpan, ImportAttributes, ModuleDependency,
-  TemplateContext, TemplateReplaceSource,
+  cache::CacheContext, module_namespace_promise, AsContextDependency, Dependency,
+  DependencyCategory, DependencyId, DependencyTemplate, DependencyType, ErrorSpan,
+  ImportAttributes, ModuleDependency, TemplateContext, TemplateReplaceSource,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -10,13 +14,16 @@ use super::{
   import_dependency::create_import_dependency_referenced_exports,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ImportEagerDependency {
   start: u32,
   end: u32,
   id: DependencyId,
+  #[with(AsRefStr)]
   request: Atom,
   span: Option<ErrorSpan>,
+  #[with(AsOption<AsVec<AsRefStr>>)]
   referenced_exports: Option<Vec<Atom>>,
   attributes: Option<ImportAttributes>,
   resource_identifier: String,
@@ -46,6 +53,7 @@ impl ImportEagerDependency {
   }
 }
 
+#[cacheable_dyn(CacheContext)]
 impl Dependency for ImportEagerDependency {
   fn id(&self) -> &DependencyId {
     &self.id
