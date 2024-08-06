@@ -69,25 +69,24 @@ pub fn cacheable(
   args: proc_macro::TokenStream,
   tokens: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-  if !args.is_empty() {
-    let args = syn::parse_macro_input!(args as cacheable::CacheableArgs);
-    cacheable::impl_cacheable_with(tokens, args.with)
+  let args = syn::parse_macro_input!(args as cacheable::CacheableArgs);
+  if let Some(with) = args.with {
+    cacheable::impl_cacheable_with(tokens, with)
   } else {
-    cacheable::impl_cacheable(tokens)
+    cacheable::impl_cacheable(tokens, args.type_name)
   }
 }
 
 #[proc_macro_attribute]
 pub fn cacheable_dyn(
-  args: proc_macro::TokenStream,
+  _args: proc_macro::TokenStream,
   tokens: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-  let args = syn::parse_macro_input!(args as cacheable_dyn::CacheableDynArgs);
   let input = syn::parse_macro_input!(tokens as syn::Item);
 
   match input {
-    syn::Item::Trait(input) => cacheable_dyn::impl_trait(args, input),
-    syn::Item::Impl(input) => cacheable_dyn::impl_impl(args, input),
+    syn::Item::Trait(input) => cacheable_dyn::impl_trait(input),
+    syn::Item::Impl(input) => cacheable_dyn::impl_impl(input),
     _ => panic!("expect Trait or Impl"),
   }
 }

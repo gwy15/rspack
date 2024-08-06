@@ -32,6 +32,6 @@ where
   F: SkipSerializeConverter<C>,
 {
   fn deserialize_with(_: &(), de: &mut CacheableDeserializer<C>) -> Result<F, DeserializeError> {
-    F::deserialize(de.get_context())
+    F::deserialize(de.context_mut())
   }
 }

@@ -2,26 +2,80 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
   parse::{Parse, ParseStream},
-  parse_macro_input, Item, Result,
+  parse_macro_input, Ident, Item, Result, Token,
 };
 
 mod kw {
   syn::custom_keyword!(with);
+  syn::custom_keyword!(type_name);
 }
 pub struct CacheableArgs {
-  pub with: syn::Path,
+  pub with: Option<syn::Path>,
+  pub type_name: bool,
 }
 impl Parse for CacheableArgs {
   fn parse(input: ParseStream) -> Result<Self> {
-    input.parse::<kw::with>()?;
-    input.parse::<syn::Token![=]>()?;
-    let with = input.parse::<syn::Path>()?;
-    Ok(Self { with })
+    let mut with = None;
+    let mut type_name = false;
+
+    let mut needs_punct = false;
+    while !input.is_empty() {
+      if needs_punct {
+        input.parse::<Token![,]>()?;
+      }
+
+      if input.peek(kw::with) {
+        if with.is_some() {
+          return Err(input.error("duplicate with argument"));
+        }
+
+        input.parse::<kw::with>()?;
+        input.parse::<Token![=]>()?;
+        with = Some(input.parse::<syn::Path>()?);
+      } else if input.peek(kw::type_name) {
+        if type_name {
+          return Err(input.error("duplicate type_name argument"));
+        }
+
+        input.parse::<kw::type_name>()?;
+        type_name = true;
+      } else {
+        return Err(
+          input.error("expected serialize = \"...\" or deserialize = \"...\" parameters"),
+        );
+      }
+
+      needs_punct = true;
+    }
+
+    if with.is_some() && type_name {
+      return Err(input.error("can not use `type_name` with `with=`"));
+    }
+
+    Ok(Self { with, type_name })
   }
 }
 
-pub fn impl_cacheable(tokens: TokenStream) -> TokenStream {
+pub fn impl_cacheable(tokens: TokenStream, type_name: bool) -> TokenStream {
   let input = parse_macro_input!(tokens as Item);
+  let item_ident = match &input {
+    Item::Enum(input) => &input.ident,
+    Item::Struct(input) => &input.ident,
+    _ => panic!("expect enum or struct"),
+  };
+  let type_name_code = if type_name {
+    let archived_trait = Ident::new(&format!("Archived{item_ident}"), item_ident.span());
+    quote! {
+        impl rspack_cacheable::__private::rkyv_typename::TypeName for #archived_trait {
+            fn build_type_name<F: FnMut(&str)>(mut f: F) {
+                f(core::concat!(core::module_path!(), "::"));
+                f(&core::line!().to_string());
+            }
+        }
+    }
+  } else {
+    quote! {}
+  };
   quote! {
       #[derive(
           rspack_cacheable::__private::rkyv::Archive,
@@ -30,12 +84,15 @@ pub fn impl_cacheable(tokens: TokenStream) -> TokenStream {
       )]
       #[archive(check_bytes, crate="rspack_cacheable::__private::rkyv")]
       #input
+
+      #type_name_code
   }
   .into()
 }
 
 pub fn impl_cacheable_with(tokens: TokenStream, with: syn::Path) -> TokenStream {
   let input = parse_macro_input!(tokens as Item);
+  // TODO use _impl_generics, _ty_generics, _where_clause
   let (ident, _impl_generics, _ty_generics, _where_clause) = match &input {
     Item::Enum(input) => {
       let (a, b, c) = input.generics.split_for_impl();

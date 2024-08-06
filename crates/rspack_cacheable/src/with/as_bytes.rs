@@ -8,20 +8,21 @@ use crate::{CacheableDeserializer, CacheableSerializer, DeserializeError, Serial
 pub struct AsBytes;
 
 pub trait AsBytesConverter<C> {
+  // todo change return to Result<Cow<Vec<u8>>, SerializeError>
   fn to_bytes(&self, context: &mut C) -> Result<Vec<u8>, SerializeError>;
   fn from_bytes(s: &[u8], context: &mut C) -> Result<Self, DeserializeError>
   where
     Self: Sized;
 }
 
-pub struct AsCacheableResolver {
+pub struct AsBytesResolver {
   inner: VecResolver,
   len: usize,
 }
 
 impl<T> ArchiveWith<T> for AsBytes {
   type Archived = ArchivedVec<u8>;
-  type Resolver = AsCacheableResolver;
+  type Resolver = AsBytesResolver;
 
   #[inline]
   unsafe fn resolve_with(
@@ -43,8 +44,8 @@ where
     field: &T,
     serializer: &mut CacheableSerializer<'a, C>,
   ) -> Result<Self::Resolver, SerializeError> {
-    let bytes = &field.to_bytes(serializer.get_context())?;
-    Ok(AsCacheableResolver {
+    let bytes = &field.to_bytes(serializer.context_mut())?;
+    Ok(AsBytesResolver {
       inner: ArchivedVec::serialize_from_slice(bytes, serializer)?,
       len: bytes.len(),
     })
@@ -60,7 +61,7 @@ where
     field: &ArchivedVec<u8>,
     de: &mut CacheableDeserializer<'a, C>,
   ) -> Result<T, DeserializeError> {
-    AsBytesConverter::from_bytes(field, de.get_context())
+    AsBytesConverter::from_bytes(field, de.context_mut())
   }
 }
 

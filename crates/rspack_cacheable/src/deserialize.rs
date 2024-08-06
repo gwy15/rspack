@@ -12,7 +12,7 @@ pub enum DeserializeError {
   /// A shared pointer was added multiple times
   DuplicateSharedPointer,
   /// A deserialize failed occurred
-  DeserializeFailed(String),
+  DeserializeFailed(&'static str),
 }
 
 pub struct CacheableDeserializer<'a, C> {
@@ -28,7 +28,7 @@ impl<'a, C> CacheableDeserializer<'a, C> {
     }
   }
 
-  pub fn get_context(&mut self) -> &mut C {
+  pub fn context_mut(&mut self) -> &mut C {
     self.context
   }
 }

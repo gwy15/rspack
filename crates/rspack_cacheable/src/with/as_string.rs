@@ -89,6 +89,21 @@ impl AsStringConverter for json::JsonValue {
   where
     Self: Sized,
   {
-    Ok(json::parse(s).expect("parse json failed"))
+    json::parse(s).map_err(|_| DeserializeError::DeserializeFailed("deserialize json value failed"))
+  }
+}
+
+// for serde_json value
+impl AsStringConverter for serde_json::Value {
+  fn to_string(&self) -> Result<String, SerializeError> {
+    serde_json::to_string(self)
+      .map_err(|_| SerializeError::SerializeFailed("serialize serde_json value failed"))
+  }
+  fn from_str(s: &str) -> Result<Self, DeserializeError>
+  where
+    Self: Sized,
+  {
+    serde_json::from_str(s)
+      .map_err(|_| DeserializeError::DeserializeFailed("deserialize serde_json value failed"))
   }
 }

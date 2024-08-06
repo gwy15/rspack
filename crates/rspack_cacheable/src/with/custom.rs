@@ -48,7 +48,7 @@ where
     field: &F,
     s: &mut CacheableSerializer<'a, C>,
   ) -> Result<Self::Resolver, SerializeError> {
-    let value = T::from(field, s.get_context())?;
+    let value = T::from(field, s.context_mut())?;
     Ok(CustomResolver {
       inner: T::serialize(&value, s)?,
       value,
@@ -67,6 +67,6 @@ where
     d: &mut CacheableDeserializer<'a, C>,
   ) -> Result<F, DeserializeError> {
     let data: T = T::Archived::deserialize(field, d)?;
-    data.to(d.get_context())
+    data.to(d.context_mut())
   }
 }

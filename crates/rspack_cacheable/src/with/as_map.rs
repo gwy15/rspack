@@ -193,3 +193,46 @@ where
     data.collect::<Result<hashlink::LinkedHashMap<_, _>, DeserializeError>>()
   }
 }
+
+// for DashMap
+struct ExactSizeWrapper<T>(usize, T);
+impl<T: Iterator> Iterator for ExactSizeWrapper<T> {
+  type Item = T::Item;
+  fn next(&mut self) -> Option<Self::Item> {
+    self.1.next()
+  }
+}
+impl<T: Iterator> ExactSizeIterator for ExactSizeWrapper<T> {
+  fn len(&self) -> usize {
+    self.0
+  }
+}
+impl<K, V, S> AsMapConverter for dashmap::DashMap<K, V, S>
+where
+  K: std::cmp::Eq + std::hash::Hash,
+  S: core::hash::BuildHasher + Clone + Default,
+{
+  type Key = K;
+  type Value = V;
+  fn len(&self) -> usize {
+    self.len()
+  }
+  fn iter(&self) -> impl ExactSizeIterator<Item = (&Self::Key, &Self::Value)> {
+    let len = self.len();
+    ExactSizeWrapper(
+      len,
+      dashmap::DashMap::iter(self).map(|item| {
+        let (key, value) = item.pair();
+        let key: *const Self::Key = key;
+        let value: *const Self::Value = value;
+        // SAFETY: The key value livetime should be equal with self
+        unsafe { (&*key, &*value) }
+      }),
+    )
+  }
+  fn from(
+    data: impl ExactSizeIterator<Item = Result<(Self::Key, Self::Value), DeserializeError>>,
+  ) -> Result<Self, DeserializeError> {
+    data.collect::<Result<dashmap::DashMap<K, V, S>, DeserializeError>>()
+  }
+}

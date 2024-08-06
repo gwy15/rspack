@@ -19,10 +19,10 @@ pub enum SerializeError {
   /// An error occurred while serializing shared memory
   SharedError(<SharedSerializeMap as Fallible>::Error),
   /// A serialize failed occurred
-  SerializerFailed(String),
+  SerializeFailed(&'static str),
 }
 
-pub struct CacheableSerializer<'a, C> {
+pub struct CacheableSerializer<'a, C: 'a> {
   serializer: AlignedSerializer<AlignedVec>,
   scratch: FallbackScratch<HeapScratch<1024>, AllocScratch>,
   shared: SharedSerializeMap,
@@ -30,7 +30,7 @@ pub struct CacheableSerializer<'a, C> {
 }
 
 impl<'a, C> CacheableSerializer<'a, C> {
-  fn new(context: &'a mut C) -> Self {
+  pub fn new(context: &'a mut C) -> Self {
     Self {
       serializer: Default::default(),
       scratch: Default::default(),
@@ -38,7 +38,7 @@ impl<'a, C> CacheableSerializer<'a, C> {
       context,
     }
   }
-  pub fn get_context(&mut self) -> &mut C {
+  pub fn context_mut(&mut self) -> &mut C {
     self.context
   }
 }
