@@ -4,7 +4,7 @@ use rspack_cacheable::{cacheable, from_bytes, to_bytes};
 fn test_manual_cacheable_dyn_macro_with_generics() {
   struct Context;
 
-  trait Animal<T>: rspack_cacheable::r#dyn::SerializeDyn {
+  trait Animal<T = ()>: rspack_cacheable::r#dyn::SerializeDyn {
     fn color(&self) -> &str;
     fn name(&self) -> T;
   }

@@ -75,7 +75,7 @@ fn test_cacheable_dyn_macro_with_generics() {
   struct Context;
 
   #[cacheable_dyn]
-  trait Animal<T> {
+  trait Animal<T = ()> {
     fn color(&self) -> &str;
     fn name(&self) -> T;
   }

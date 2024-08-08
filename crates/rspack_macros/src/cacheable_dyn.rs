@@ -1,10 +1,18 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_quote, spanned::Spanned, Ident, ItemImpl, ItemTrait, Type};
+use syn::{parse_quote, spanned::Spanned, GenericParam, Ident, ItemImpl, ItemTrait, Type};
 
 pub fn impl_trait(mut input: ItemTrait) -> TokenStream {
   let trait_ident = &input.ident;
-  let generic_params = input.generics.params.iter().map(|p| quote! { #p });
+  let generic_params = input.generics.params.iter().map(|p| {
+    // remove default value
+    let mut p = p.clone();
+    if let GenericParam::Type(param) = &mut p {
+      param.eq_token = None;
+      param.default = None;
+    }
+    quote! { #p }
+  });
   let generic_params = quote! { #(#generic_params),* };
   let deserialize_trait_ident =
     Ident::new(&format!("Deserialize{trait_ident}"), trait_ident.span());
