@@ -15,29 +15,30 @@ pub enum DeserializeError {
   DeserializeFailed(&'static str),
 }
 
-pub struct CacheableDeserializer<'a, C> {
+pub struct CacheableDeserializer {
   shared: SharedDeserializeMap,
-  context: &'a mut C,
+  context: *mut (),
 }
 
-impl<'a, C> CacheableDeserializer<'a, C> {
-  fn new(context: &'a mut C) -> Self {
+impl CacheableDeserializer {
+  fn new<C>(context: &mut C) -> Self {
     Self {
       shared: SharedDeserializeMap::default(),
-      context,
+      context: context as *mut C as *mut (),
     }
   }
 
-  pub fn context_mut(&mut self) -> &mut C {
-    self.context
+  // TODO change to safe implement
+  pub unsafe fn context_mut<C>(&mut self) -> &mut C {
+    std::mem::transmute::<*mut (), &mut C>(self.context)
   }
 }
 
-impl<C> Fallible for CacheableDeserializer<'_, C> {
+impl Fallible for CacheableDeserializer {
   type Error = DeserializeError;
 }
 
-impl<C> SharedDeserializeRegistry for CacheableDeserializer<'_, C> {
+impl SharedDeserializeRegistry for CacheableDeserializer {
   fn get_shared_ptr(&mut self, ptr: *const u8) -> Option<&dyn SharedPointer> {
     self.shared.get_shared_ptr(ptr)
   }
@@ -57,7 +58,7 @@ impl<C> SharedDeserializeRegistry for CacheableDeserializer<'_, C> {
 pub fn from_bytes<'a, T, C>(bytes: &'a [u8], context: &'a mut C) -> Result<T, DeserializeError>
 where
   T: Archive,
-  T::Archived: 'a + CheckBytes<DefaultValidator<'a>> + Deserialize<T, CacheableDeserializer<'a, C>>,
+  T::Archived: 'a + CheckBytes<DefaultValidator<'a>> + Deserialize<T, CacheableDeserializer>,
 {
   let mut deserializer = CacheableDeserializer::new(context);
   check_archived_root::<T>(bytes)

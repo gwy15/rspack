@@ -22,15 +22,15 @@ pub enum SerializeError {
   SerializeFailed(&'static str),
 }
 
-pub struct CacheableSerializer<'a, C: 'a> {
+pub struct CacheableSerializer {
   serializer: AlignedSerializer<AlignedVec>,
   scratch: FallbackScratch<HeapScratch<1024>, AllocScratch>,
   shared: SharedSerializeMap,
-  context: &'a mut C,
+  context: *mut (),
 }
 
-impl<'a, C> CacheableSerializer<'a, C> {
-  pub fn new(context: &'a mut C) -> Self {
+impl CacheableSerializer {
+  pub fn new(context: *mut ()) -> Self {
     Self {
       serializer: Default::default(),
       scratch: Default::default(),
@@ -38,16 +38,16 @@ impl<'a, C> CacheableSerializer<'a, C> {
       context,
     }
   }
-  pub fn context_mut(&mut self) -> &mut C {
-    self.context
+  pub unsafe fn context_mut<C>(&mut self) -> &mut C {
+    std::mem::transmute::<*mut (), &mut C>(self.context)
   }
 }
 
-impl<C> Fallible for CacheableSerializer<'_, C> {
+impl Fallible for CacheableSerializer {
   type Error = SerializeError;
 }
 
-impl<C> Serializer for CacheableSerializer<'_, C> {
+impl Serializer for CacheableSerializer {
   #[inline]
   fn pos(&self) -> usize {
     self.serializer.pos()
@@ -111,7 +111,7 @@ impl<C> Serializer for CacheableSerializer<'_, C> {
   }
 }
 
-impl<C> ScratchSpace for CacheableSerializer<'_, C> {
+impl ScratchSpace for CacheableSerializer {
   #[inline]
   unsafe fn push_scratch(&mut self, layout: Layout) -> Result<NonNull<[u8]>, Self::Error> {
     self
@@ -129,7 +129,7 @@ impl<C> ScratchSpace for CacheableSerializer<'_, C> {
   }
 }
 
-impl<C> SharedSerializeRegistry for CacheableSerializer<'_, C> {
+impl SharedSerializeRegistry for CacheableSerializer {
   #[inline]
   fn get_shared_ptr(&self, value: *const u8) -> Option<usize> {
     self.shared.get_shared_ptr(value)
@@ -146,9 +146,9 @@ impl<C> SharedSerializeRegistry for CacheableSerializer<'_, C> {
 
 pub fn to_bytes<'a, T, C>(data: &'a T, ctx: &'a mut C) -> Result<Vec<u8>, SerializeError>
 where
-  T: Serialize<CacheableSerializer<'a, C>>,
+  T: Serialize<CacheableSerializer>,
 {
-  let mut serializer = CacheableSerializer::new(ctx);
+  let mut serializer = CacheableSerializer::new(ctx as *mut C as *mut ());
   serializer.serialize_value(data)?;
   // TODO try return inner without to_vec to improve performance
   Ok(serializer.serializer.into_inner().to_vec())

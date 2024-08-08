@@ -38,14 +38,14 @@ where
   }
 }
 
-impl<'a, T, C> SerializeWith<T, CacheableSerializer<'a, C>> for AsString
+impl<'a, T> SerializeWith<T, CacheableSerializer> for AsString
 where
   T: AsStringConverter,
 {
   #[inline]
   fn serialize_with(
     field: &T,
-    serializer: &mut CacheableSerializer<'a, C>,
+    serializer: &mut CacheableSerializer,
   ) -> Result<Self::Resolver, SerializeError> {
     let value = field.to_string()?;
     let inner = ArchivedString::serialize_from_str(&value, serializer)?;
@@ -53,14 +53,14 @@ where
   }
 }
 
-impl<'a, T, C> DeserializeWith<ArchivedString, T, CacheableDeserializer<'a, C>> for AsString
+impl<'a, T> DeserializeWith<ArchivedString, T, CacheableDeserializer> for AsString
 where
   T: AsStringConverter,
 {
   #[inline]
   fn deserialize_with(
     field: &ArchivedString,
-    _: &mut CacheableDeserializer<'a, C>,
+    _: &mut CacheableDeserializer,
   ) -> Result<T, DeserializeError> {
     AsStringConverter::from_str(field.as_str())
   }

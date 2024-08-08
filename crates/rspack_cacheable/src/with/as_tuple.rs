@@ -6,7 +6,7 @@ use rkyv::{
   CheckBytes, Fallible,
 };
 
-use crate::{with::AsCacheable, CacheableDeserializer, DeserializeError};
+use crate::with::AsCacheable;
 
 pub struct Tuple2<A, B> {
   a: A,
@@ -72,17 +72,17 @@ where
   }
 }
 
-impl<'a, A, B, K, V, C>
-  DeserializeWith<Tuple2<A::Archived, B::Archived>, (K, V), CacheableDeserializer<'a, C>>
+impl<'a, A, B, K, V, D> DeserializeWith<Tuple2<A::Archived, B::Archived>, (K, V), D>
   for AsTuple2<A, B>
 where
-  A: ArchiveWith<K> + DeserializeWith<A::Archived, K, CacheableDeserializer<'a, C>>,
-  B: ArchiveWith<V> + DeserializeWith<B::Archived, V, CacheableDeserializer<'a, C>>,
+  A: ArchiveWith<K> + DeserializeWith<A::Archived, K, D>,
+  B: ArchiveWith<V> + DeserializeWith<B::Archived, V, D>,
+  D: ?Sized + Fallible,
 {
   fn deserialize_with(
     field: &Tuple2<A::Archived, B::Archived>,
-    deserializer: &mut CacheableDeserializer<'a, C>,
-  ) -> Result<(K, V), DeserializeError> {
+    deserializer: &mut D,
+  ) -> Result<(K, V), D::Error> {
     Ok((
       A::deserialize_with(&field.a, deserializer)?,
       B::deserialize_with(&field.b, deserializer)?,

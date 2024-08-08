@@ -4,7 +4,7 @@ use rspack_cacheable::{cacheable, from_bytes, to_bytes};
 fn test_manual_cacheable_dyn_macro_with_generics() {
   struct Context;
 
-  trait Animal<T>: rspack_cacheable::__private::rkyv_dyn::SerializeDyn {
+  trait Animal<T>: rspack_cacheable::r#dyn::SerializeDyn {
     fn color(&self) -> &str;
     fn name(&self) -> T;
   }
@@ -16,16 +16,18 @@ fn test_manual_cacheable_dyn_macro_with_generics() {
     use rspack_cacheable::__private::{
       ptr_meta,
       rkyv::{
-        ser::{ScratchSpace, Serializer},
-        validation::LayoutRaw,
-        ArchivePointee, ArchiveUnsized, ArchivedMetadata, CheckBytes, DeserializeUnsized, Fallible,
-        SerializeUnsized,
+        validation::LayoutRaw, ArchivePointee, ArchiveUnsized, ArchivedMetadata, CheckBytes,
+        DeserializeUnsized, SerializeUnsized,
       },
       rkyv_dyn::{
         validation::{CheckDynError, DynContext, CHECK_BYTES_REGISTRY},
-        ArchivedDynMetadata, DeserializeDyn,
+        ArchivedDynMetadata,
       },
       rkyv_typename::TypeName,
+    };
+    use rspack_cacheable::{
+      r#dyn::DeserializeDyn, CacheableDeserializer, CacheableSerializer, DeserializeError,
+      SerializeError,
     };
 
     impl<T> ptr_meta::Pointee for dyn Animal<T> {
@@ -69,39 +71,36 @@ fn test_manual_cacheable_dyn_macro_with_generics() {
       }
     }
 
-    impl<T, S: ScratchSpace + Serializer + ?Sized> SerializeUnsized<S> for dyn Animal<T> {
-      fn serialize_unsized(&self, mut serializer: &mut S) -> Result<usize, S::Error> {
-        self
-          .serialize_dyn(&mut serializer)
-          .map_err(|e| *e.downcast::<S::Error>().unwrap())
+    impl<T> SerializeUnsized<CacheableSerializer> for dyn Animal<T> {
+      fn serialize_unsized(
+        &self,
+        mut serializer: &mut CacheableSerializer,
+      ) -> Result<usize, SerializeError> {
+        self.serialize_dyn(&mut serializer)
       }
 
-      fn serialize_metadata(&self, _: &mut S) -> Result<Self::MetadataResolver, S::Error> {
+      fn serialize_metadata(
+        &self,
+        _: &mut CacheableSerializer,
+      ) -> Result<Self::MetadataResolver, SerializeError> {
         Ok(())
       }
     }
 
-    impl<T, D> DeserializeUnsized<dyn Animal<T>, D> for dyn DeserializeAnimal<T>
-    where
-      D: Fallible + ?Sized,
-    {
+    impl<T> DeserializeUnsized<dyn Animal<T>, CacheableDeserializer> for dyn DeserializeAnimal<T> {
       unsafe fn deserialize_unsized(
         &self,
-        mut deserializer: &mut D,
+        mut deserializer: &mut CacheableDeserializer,
         mut alloc: impl FnMut(Layout) -> *mut u8,
-      ) -> Result<*mut (), D::Error> {
-        self
-          .deserialize_dyn(&mut deserializer, &mut alloc)
-          .map_err(|e| *e.downcast().unwrap())
+      ) -> Result<*mut (), DeserializeError> {
+        self.deserialize_dyn(&mut deserializer, &mut alloc)
       }
 
       fn deserialize_metadata(
         &self,
-        mut deserializer: &mut D,
-      ) -> Result<<dyn Animal<T> as ptr_meta::Pointee>::Metadata, D::Error> {
-        self
-          .deserialize_dyn_metadata(&mut deserializer)
-          .map_err(|e| *e.downcast().unwrap())
+        mut deserializer: &mut CacheableDeserializer,
+      ) -> Result<<dyn Animal<T> as ptr_meta::Pointee>::Metadata, DeserializeError> {
+        self.deserialize_dyn_metadata(&mut deserializer)
       }
     }
 
@@ -157,21 +156,21 @@ fn test_manual_cacheable_dyn_macro_with_generics() {
     use rspack_cacheable::__private::{
       inventory, ptr_meta,
       rkyv::{ArchiveUnsized, Archived, Deserialize},
-      rkyv_dyn::{
-        self, register_impl, register_validation, DeserializeDyn, DynDeserializer, DynError,
-      },
+      rkyv_dyn::{self, register_impl},
     };
+    use rspack_cacheable::{r#dyn::DeserializeDyn, CacheableDeserializer, DeserializeError};
+
     register_impl!(ArchivedDog as <dyn Animal<&'static str> as ArchiveUnsized>::Archived);
 
     impl DeserializeDyn<dyn Animal<&'static str>> for Archived<Dog>
     where
-      Archived<Dog>: Deserialize<Dog, dyn DynDeserializer>,
+      Archived<Dog>: Deserialize<Dog, CacheableDeserializer>,
     {
       unsafe fn deserialize_dyn(
         &self,
-        deserializer: &mut dyn DynDeserializer,
+        deserializer: &mut CacheableDeserializer,
         alloc: &mut dyn FnMut(Layout) -> *mut u8,
-      ) -> Result<*mut (), DynError> {
+      ) -> Result<*mut (), DeserializeError> {
         let result = alloc(Layout::new::<Dog>()).cast::<Dog>();
         assert!(!result.is_null());
         result.write(self.deserialize(deserializer)?);
@@ -180,8 +179,9 @@ fn test_manual_cacheable_dyn_macro_with_generics() {
 
       fn deserialize_dyn_metadata(
         &self,
-        _: &mut dyn DynDeserializer,
-      ) -> Result<<dyn Animal<&'static str> as ptr_meta::Pointee>::Metadata, DynError> {
+        _: &mut CacheableDeserializer,
+      ) -> Result<<dyn Animal<&'static str> as ptr_meta::Pointee>::Metadata, DeserializeError>
+      {
         unsafe {
           Ok(core::mem::transmute(ptr_meta::metadata(
             core::ptr::null::<Dog>() as *const dyn Animal<&'static str>,
@@ -217,19 +217,21 @@ fn test_manual_cacheable_dyn_macro_with_generics() {
     use rspack_cacheable::__private::{
       ptr_meta,
       rkyv::{ArchiveUnsized, Archived, Deserialize},
-      rkyv_dyn::{self, register_impl, DeserializeDyn, DynDeserializer, DynError},
+      rkyv_dyn::{self, register_impl},
     };
+    use rspack_cacheable::{r#dyn::DeserializeDyn, CacheableDeserializer, DeserializeError};
+
     register_impl!(ArchivedCat as <dyn Animal<String> as ArchiveUnsized>::Archived);
 
     impl DeserializeDyn<dyn Animal<String>> for Archived<Cat>
     where
-      Archived<Cat>: Deserialize<Cat, dyn DynDeserializer>,
+      Archived<Cat>: Deserialize<Cat, CacheableDeserializer>,
     {
       unsafe fn deserialize_dyn(
         &self,
-        deserializer: &mut dyn DynDeserializer,
+        deserializer: &mut CacheableDeserializer,
         alloc: &mut dyn FnMut(Layout) -> *mut u8,
-      ) -> Result<*mut (), DynError> {
+      ) -> Result<*mut (), DeserializeError> {
         let result = alloc(Layout::new::<Cat>()).cast::<Cat>();
         assert!(!result.is_null());
         result.write(self.deserialize(deserializer)?);
@@ -238,8 +240,8 @@ fn test_manual_cacheable_dyn_macro_with_generics() {
 
       fn deserialize_dyn_metadata(
         &self,
-        _: &mut dyn DynDeserializer,
-      ) -> Result<<dyn Animal<String> as ptr_meta::Pointee>::Metadata, DynError> {
+        _: &mut CacheableDeserializer,
+      ) -> Result<<dyn Animal<String> as ptr_meta::Pointee>::Metadata, DeserializeError> {
         unsafe {
           Ok(core::mem::transmute(ptr_meta::metadata(
             core::ptr::null::<Cat>() as *const dyn Animal<String>,

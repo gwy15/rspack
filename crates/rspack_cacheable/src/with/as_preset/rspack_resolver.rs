@@ -11,7 +11,6 @@ use rkyv::{
 use rspack_resolver::AliasValue;
 
 use super::AsPreset;
-use crate::{CacheableDeserializer, DeserializeError};
 
 pub struct ArchivedAliasValue {
   is_ignore: bool,
@@ -78,13 +77,14 @@ where
   }
 }
 
-impl<'a, C> DeserializeWith<ArchivedAliasValue, AliasValue, CacheableDeserializer<'a, C>>
-  for AsPreset
+impl<'a, D> DeserializeWith<ArchivedAliasValue, AliasValue, D> for AsPreset
+where
+  D: ?Sized + Fallible,
 {
   fn deserialize_with(
     field: &ArchivedAliasValue,
-    deserializer: &mut CacheableDeserializer<'a, C>,
-  ) -> Result<AliasValue, DeserializeError> {
+    deserializer: &mut D,
+  ) -> Result<AliasValue, D::Error> {
     Ok(if field.is_ignore {
       AliasValue::Ignore
     } else {

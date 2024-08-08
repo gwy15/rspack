@@ -79,15 +79,14 @@ where
   }
 }
 
-impl<'a, T, A, O, C> DeserializeWith<ArchivedVec<A::Archived>, T, CacheableDeserializer<'a, C>>
-  for AsVec<A>
+impl<T, A, O> DeserializeWith<ArchivedVec<A::Archived>, T, CacheableDeserializer> for AsVec<A>
 where
   T: AsVecConverter<Item = O>,
-  A: ArchiveWith<O> + DeserializeWith<A::Archived, O, CacheableDeserializer<'a, C>>,
+  A: ArchiveWith<O> + DeserializeWith<A::Archived, O, CacheableDeserializer>,
 {
   fn deserialize_with(
     field: &ArchivedVec<A::Archived>,
-    d: &mut CacheableDeserializer<'a, C>,
+    d: &mut CacheableDeserializer,
   ) -> Result<T, DeserializeError> {
     T::from(field.iter().map(|item| A::deserialize_with(item, d)))
   }

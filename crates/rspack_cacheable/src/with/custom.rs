@@ -9,11 +9,11 @@ pub struct Custom<F> {
   _target: F,
 }
 
-pub trait CustomConverter<F, C> {
-  fn from(data: &F, ctx: &mut C) -> Result<Self, SerializeError>
+pub trait CustomConverter<F> {
+  fn from(data: &F) -> Result<Self, SerializeError>
   where
     Self: Sized;
-  fn to(self, ctx: &mut C) -> Result<F, DeserializeError>;
+  fn to(self) -> Result<F, DeserializeError>;
 }
 
 pub struct CustomResolver<O: Archive> {
@@ -39,16 +39,16 @@ where
   }
 }
 
-impl<'a, F, T, C> SerializeWith<F, CacheableSerializer<'a, C>> for Custom<T>
+impl<'a, F, T> SerializeWith<F, CacheableSerializer> for Custom<T>
 where
-  T: Archive + Serialize<CacheableSerializer<'a, C>> + CustomConverter<F, C>,
+  T: Archive + Serialize<CacheableSerializer> + CustomConverter<F>,
 {
   #[inline]
   fn serialize_with(
     field: &F,
-    s: &mut CacheableSerializer<'a, C>,
+    s: &mut CacheableSerializer,
   ) -> Result<Self::Resolver, SerializeError> {
-    let value = T::from(field, s.context_mut())?;
+    let value = T::from(field)?;
     Ok(CustomResolver {
       inner: T::serialize(&value, s)?,
       value,
@@ -56,17 +56,17 @@ where
   }
 }
 
-impl<'a, F, T, C> DeserializeWith<T::Archived, F, CacheableDeserializer<'a, C>> for Custom<T>
+impl<'a, F, T> DeserializeWith<T::Archived, F, CacheableDeserializer> for Custom<T>
 where
-  T: Archive + CustomConverter<F, C>,
-  T::Archived: Deserialize<T, CacheableDeserializer<'a, C>>,
+  T: Archive + CustomConverter<F>,
+  T::Archived: Deserialize<T, CacheableDeserializer>,
 {
   #[inline]
   fn deserialize_with(
     field: &T::Archived,
-    d: &mut CacheableDeserializer<'a, C>,
+    d: &mut CacheableDeserializer,
   ) -> Result<F, DeserializeError> {
     let data: T = T::Archived::deserialize(field, d)?;
-    data.to(d.context_mut())
+    data.to()
   }
 }

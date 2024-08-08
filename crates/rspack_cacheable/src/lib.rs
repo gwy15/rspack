@@ -1,4 +1,5 @@
 pub use rspack_macros::{cacheable, cacheable_dyn};
+pub mod r#dyn;
 pub mod utils;
 pub mod with;
 
@@ -9,8 +10,6 @@ mod serialize;
 pub mod __private {
   #[doc(hidden)]
   pub extern crate inventory;
-  #[doc(hidden)]
-  pub extern crate once_cell;
   #[doc(hidden)]
   pub extern crate ptr_meta;
   #[doc(hidden)]

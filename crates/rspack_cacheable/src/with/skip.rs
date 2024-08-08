@@ -8,8 +8,8 @@ use crate::{CacheableDeserializer, DeserializeError};
 
 pub struct SkipSerialize;
 
-pub trait SkipSerializeConverter<C> {
-  fn deserialize(context: &mut C) -> Result<Self, DeserializeError>
+pub trait SkipSerializeConverter {
+  fn deserialize(d: &mut CacheableDeserializer) -> Result<Self, DeserializeError>
   where
     Self: Sized;
 }
@@ -27,11 +27,11 @@ impl<F, S: Fallible + ?Sized> SerializeWith<F, S> for SkipSerialize {
   }
 }
 
-impl<'a, F, C> DeserializeWith<(), F, CacheableDeserializer<'a, C>> for SkipSerialize
+impl<F> DeserializeWith<(), F, CacheableDeserializer> for SkipSerialize
 where
-  F: SkipSerializeConverter<C>,
+  F: SkipSerializeConverter,
 {
-  fn deserialize_with(_: &(), de: &mut CacheableDeserializer<C>) -> Result<F, DeserializeError> {
-    F::deserialize(de.context_mut())
+  fn deserialize_with(_: &(), d: &mut CacheableDeserializer) -> Result<F, DeserializeError> {
+    F::deserialize(d)
   }
 }

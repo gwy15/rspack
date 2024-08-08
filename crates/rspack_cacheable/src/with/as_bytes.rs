@@ -7,10 +7,10 @@ use crate::{CacheableDeserializer, CacheableSerializer, DeserializeError, Serial
 
 pub struct AsBytes;
 
-pub trait AsBytesConverter<C> {
+pub trait AsBytesConverter {
   // todo change return to Result<Cow<Vec<u8>>, SerializeError>
-  fn to_bytes(&self, context: &mut C) -> Result<Vec<u8>, SerializeError>;
-  fn from_bytes(s: &[u8], context: &mut C) -> Result<Self, DeserializeError>
+  fn to_bytes(&self) -> Result<Vec<u8>, SerializeError>;
+  fn from_bytes(s: &[u8]) -> Result<Self, DeserializeError>
   where
     Self: Sized;
 }
@@ -35,16 +35,16 @@ impl<T> ArchiveWith<T> for AsBytes {
   }
 }
 
-impl<'a, T, C> SerializeWith<T, CacheableSerializer<'a, C>> for AsBytes
+impl<T> SerializeWith<T, CacheableSerializer> for AsBytes
 where
-  T: AsBytesConverter<C>,
+  T: AsBytesConverter,
 {
   #[inline]
   fn serialize_with(
     field: &T,
-    serializer: &mut CacheableSerializer<'a, C>,
+    serializer: &mut CacheableSerializer,
   ) -> Result<Self::Resolver, SerializeError> {
-    let bytes = &field.to_bytes(serializer.context_mut())?;
+    let bytes = &field.to_bytes()?;
     Ok(AsBytesResolver {
       inner: ArchivedVec::serialize_from_slice(bytes, serializer)?,
       len: bytes.len(),
@@ -52,21 +52,21 @@ where
   }
 }
 
-impl<'a, T, C> DeserializeWith<ArchivedVec<u8>, T, CacheableDeserializer<'a, C>> for AsBytes
+impl<T> DeserializeWith<ArchivedVec<u8>, T, CacheableDeserializer> for AsBytes
 where
-  T: AsBytesConverter<C>,
+  T: AsBytesConverter,
 {
   #[inline]
   fn deserialize_with(
     field: &ArchivedVec<u8>,
-    de: &mut CacheableDeserializer<'a, C>,
+    _de: &mut CacheableDeserializer,
   ) -> Result<T, DeserializeError> {
-    AsBytesConverter::from_bytes(field, de.context_mut())
+    AsBytesConverter::from_bytes(field)
   }
 }
 
 // for rspack_source
-use std::sync::Arc;
+/*use std::sync::Arc;
 
 use rspack_sources::RawSource;
 
@@ -116,4 +116,4 @@ impl<C> AsBytesConverter<C> for rspack_sources::BoxSource {
       }
     })
   }
-}
+}*/

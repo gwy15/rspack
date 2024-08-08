@@ -129,21 +129,18 @@ where
   }
 }
 
-impl<'a, K, V, WK, WV, T, C>
-  DeserializeWith<
-    ArchivedVec<Entry<WK::Archived, WV::Archived, WK, WV>>,
-    T,
-    CacheableDeserializer<'a, C>,
-  > for AsMap<WK, WV>
+impl<K, V, WK, WV, T>
+  DeserializeWith<ArchivedVec<Entry<WK::Archived, WV::Archived, WK, WV>>, T, CacheableDeserializer>
+  for AsMap<WK, WV>
 where
   T: AsMapConverter<Key = K, Value = V>,
   K: std::hash::Hash + Eq,
-  WK: ArchiveWith<K> + DeserializeWith<WK::Archived, K, CacheableDeserializer<'a, C>>,
-  WV: ArchiveWith<V> + DeserializeWith<WV::Archived, V, CacheableDeserializer<'a, C>>,
+  WK: ArchiveWith<K> + DeserializeWith<WK::Archived, K, CacheableDeserializer>,
+  WV: ArchiveWith<V> + DeserializeWith<WV::Archived, V, CacheableDeserializer>,
 {
   fn deserialize_with(
     field: &ArchivedVec<Entry<WK::Archived, WV::Archived, WK, WV>>,
-    deserializer: &mut CacheableDeserializer<'a, C>,
+    deserializer: &mut CacheableDeserializer,
   ) -> Result<T, DeserializeError> {
     T::from(field.iter().map(|Entry { key, value, .. }| {
       Ok((

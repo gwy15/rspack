@@ -6,7 +6,7 @@ use rkyv::{
   Fallible,
 };
 
-use crate::{with::AsCacheable, CacheableDeserializer, DeserializeError};
+use crate::with::AsCacheable;
 
 pub struct AsInner<T = AsCacheable> {
   _inner: T,
@@ -15,9 +15,7 @@ pub struct AsInner<T = AsCacheable> {
 pub trait AsInnerConverter {
   type Inner;
   fn to_inner(&self) -> &Self::Inner;
-  fn from_inner(data: Self::Inner) -> Result<Self, DeserializeError>
-  where
-    Self: Sized;
+  fn from_inner(data: Self::Inner) -> Self;
 }
 
 impl<T, O, A> ArchiveWith<T> for AsInner<A>
@@ -49,16 +47,14 @@ where
   }
 }
 
-impl<'a, T, A, O, C> DeserializeWith<A::Archived, T, CacheableDeserializer<'a, C>> for AsInner<A>
+impl<T, A, O, D> DeserializeWith<A::Archived, T, D> for AsInner<A>
 where
   T: AsInnerConverter<Inner = O>,
-  A: ArchiveWith<O> + DeserializeWith<A::Archived, O, CacheableDeserializer<'a, C>>,
+  A: ArchiveWith<O> + DeserializeWith<A::Archived, O, D>,
+  D: ?Sized + Fallible,
 {
-  fn deserialize_with(
-    field: &A::Archived,
-    d: &mut CacheableDeserializer<'a, C>,
-  ) -> Result<T, DeserializeError> {
-    T::from_inner(A::deserialize_with(field, d)?)
+  fn deserialize_with(field: &A::Archived, d: &mut D) -> Result<T, D::Error> {
+    Ok(T::from_inner(A::deserialize_with(field, d)?))
   }
 }
 
@@ -68,8 +64,8 @@ impl<T> AsInnerConverter for std::sync::Arc<T> {
   fn to_inner(&self) -> &Self::Inner {
     self.as_ref()
   }
-  fn from_inner(data: Self::Inner) -> Result<Self, DeserializeError> {
-    Ok(Self::new(data))
+  fn from_inner(data: Self::Inner) -> Self {
+    Self::new(data)
   }
 }
 
