@@ -3,7 +3,6 @@ use std::sync::Arc;
 use once_cell::sync::Lazy;
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_collections::{IdentifierDashMap, IdentifierMap, IdentifierSet};
-use rspack_core::cache::CacheContext;
 use rspack_core::{
   filter_runtime, import_statement, merge_runtime, AsContextDependency,
   AwaitDependenciesInitFragment, BuildMetaDefaultObject, ConditionalInitFragment, ConnectionState,
@@ -381,7 +380,7 @@ pub fn harmony_import_dependency_get_linking_error<T: ModuleDependency>(
   None
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for HarmonyImportSideEffectDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -477,6 +476,7 @@ impl ModuleDependency for HarmonyImportSideEffectDependency {
   // It's from HarmonyImportSideEffectDependency.
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyImportSideEffectDependency {
   fn apply(
     &self,

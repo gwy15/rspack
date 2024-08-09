@@ -7,9 +7,8 @@ use rspack_cacheable::{
 };
 use rspack_collections::{Identifiable, Identifier};
 use rspack_core::{
-  basic_function, block_promise,
-  cache::CacheContext,
-  impl_module_meta_info, impl_source_map_config, module_raw, returning_function,
+  basic_function, block_promise, impl_module_meta_info, impl_source_map_config, module_raw,
+  returning_function,
   rspack_sources::{RawSource, Source, SourceExt},
   throw_missing_module_error_block, AsyncDependenciesBlock, AsyncDependenciesBlockIdentifier,
   BoxDependency, BuildContext, BuildInfo, BuildMeta, BuildMetaExportsType, BuildResult,
@@ -97,7 +96,7 @@ impl DependenciesBlock for ContainerEntryModule {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 #[async_trait]
 impl Module for ContainerEntryModule {
   impl_module_meta_info!();

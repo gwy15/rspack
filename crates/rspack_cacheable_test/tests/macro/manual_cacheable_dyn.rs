@@ -135,12 +135,6 @@ fn test_manual_cacheable_dyn_macro() {
     color: String,
   }
 
-  impl rspack_cacheable::__private::rkyv_typename::TypeName for ArchivedDog {
-    fn build_type_name<F: FnMut(&str)>(mut f: F) {
-      f("Animal Dog");
-    }
-  }
-
   impl Animal for Dog {
     fn color(&self) -> &str {
       &self.color
@@ -155,16 +149,16 @@ fn test_manual_cacheable_dyn_macro() {
 
     use rspack_cacheable::__private::{
       inventory, ptr_meta,
-      rkyv::{ArchiveUnsized, Archived, Deserialize},
+      rkyv::{ArchiveUnsized, Deserialize},
       rkyv_dyn::{self, register_impl},
     };
     use rspack_cacheable::{r#dyn::DeserializeDyn, CacheableDeserializer, DeserializeError};
 
     register_impl!(ArchivedDog as <dyn Animal as ArchiveUnsized>::Archived);
 
-    impl DeserializeDyn<dyn Animal> for Archived<Dog>
+    impl DeserializeDyn<dyn Animal> for ArchivedDog
     where
-      Archived<Dog>: Deserialize<Dog, CacheableDeserializer>,
+      ArchivedDog: Deserialize<Dog, CacheableDeserializer>,
     {
       unsafe fn deserialize_dyn(
         &self,
@@ -195,12 +189,6 @@ fn test_manual_cacheable_dyn_macro() {
     color: String,
   }
 
-  impl rspack_cacheable::__private::rkyv_typename::TypeName for ArchivedCat {
-    fn build_type_name<F: FnMut(&str)>(mut f: F) {
-      f("Animal Cat");
-    }
-  }
-
   impl Animal for Cat {
     fn color(&self) -> &str {
       &self.color
@@ -215,16 +203,16 @@ fn test_manual_cacheable_dyn_macro() {
 
     use rspack_cacheable::__private::{
       ptr_meta,
-      rkyv::{ArchiveUnsized, Archived, Deserialize},
+      rkyv::{ArchiveUnsized, Deserialize},
       rkyv_dyn::{self, register_impl},
     };
     use rspack_cacheable::{r#dyn::DeserializeDyn, CacheableDeserializer, DeserializeError};
 
     register_impl!(ArchivedCat as <dyn Animal as ArchiveUnsized>::Archived);
 
-    impl DeserializeDyn<dyn Animal> for Archived<Cat>
+    impl DeserializeDyn<dyn Animal> for ArchivedCat
     where
-      Archived<Cat>: Deserialize<Cat, CacheableDeserializer>,
+      ArchivedCat: Deserialize<Cat, CacheableDeserializer>,
     {
       unsafe fn deserialize_dyn(
         &self,

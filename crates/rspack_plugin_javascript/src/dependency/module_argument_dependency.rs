@@ -1,7 +1,9 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
   AsDependency, DependencyTemplate, RuntimeGlobals, TemplateContext, TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ModuleArgumentDependency {
   pub start: u32,
@@ -15,6 +17,7 @@ impl ModuleArgumentDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ModuleArgumentDependency {
   fn apply(
     &self,

@@ -7,6 +7,10 @@ use std::{borrow::Cow, convert::Infallible, ptr};
 
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
+use rspack_cacheable::{
+  cacheable,
+  with::{AsRefStr, AsRefStrConverter},
+};
 use rspack_error::error;
 use rspack_macros::MergeFrom;
 use rspack_util::atom::Atom;
@@ -59,8 +63,18 @@ enum FilenameKind<F> {
 /// implements `Hash` and `Eq`, and its error type is `rspack_error::Error`.
 ///
 /// Other possible function types are `NoFilenameFn` and `LocalJsFilenameFn`
+#[cacheable(with=AsRefStr)]
 #[derive(PartialEq, Debug, Hash, Eq, Clone, PartialOrd, Ord)]
 pub struct Filename<F = Arc<dyn FilenameFn>>(FilenameKind<F>);
+
+impl<F> AsRefStrConverter for Filename<F> {
+  fn as_str(&self) -> &str {
+    todo!()
+  }
+  fn from_str(s: &str) -> Self {
+    todo!()
+  }
+}
 
 impl<F> Filename<F> {
   pub fn from_fn(f: F) -> Self {

@@ -4,6 +4,7 @@ mod storage;
 
 use std::{path::PathBuf, sync::Arc};
 
+pub use self::occasion::CacheContext;
 pub use self::snapshot::SnapshotOption;
 use self::{
   snapshot::Snapshot,
@@ -30,6 +31,6 @@ impl Cache {
   }
 
   pub fn idle(&self) {
-    self.storage.idle();
+    //    self.storage.idle();
   }
 }

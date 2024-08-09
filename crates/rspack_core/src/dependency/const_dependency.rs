@@ -1,7 +1,10 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
+
 use crate::{
   AsDependency, DependencyTemplate, RuntimeGlobals, TemplateContext, TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ConstDependency {
   pub start: u32,
@@ -26,6 +29,7 @@ impl ConstDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ConstDependency {
   fn apply(
     &self,

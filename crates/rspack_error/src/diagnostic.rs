@@ -6,7 +6,9 @@ use std::{
 };
 
 use miette::{GraphicalTheme, IntoDiagnostic, MietteDiagnostic};
-use rspack_cacheable::cacheable;
+use rspack_cacheable::{
+  cacheable, with::SkipSerializeConverter, CacheableDeserializer, DeserializeError,
+};
 use rspack_collections::Identifier;
 use swc_core::common::{SourceMap, Span};
 
@@ -104,6 +106,12 @@ pub struct Diagnostic {
   hide_stack: Option<bool>,
   chunk: Option<u32>,
   stack: Option<String>,
+}
+
+impl SkipSerializeConverter for Diagnostic {
+  fn deserialize(_context: &mut CacheableDeserializer) -> Result<Self, DeserializeError> {
+    todo!()
+  }
 }
 
 impl From<Box<dyn miette::Diagnostic + Send + Sync>> for Diagnostic {

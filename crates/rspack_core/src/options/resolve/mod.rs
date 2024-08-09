@@ -4,6 +4,14 @@ mod value_type;
 use std::{borrow::Cow, path::PathBuf};
 
 use hashlink::LinkedHashMap;
+use rspack_cacheable::{
+  cacheable,
+  utils::{WithWrapper, WithWrapperRef},
+  with::{
+    AsBytes, AsBytesConverter, AsCacheable, AsMap, AsOption, AsPreset, AsRefStr, AsString,
+    AsTuple2, AsVec,
+  },
+};
 
 use crate::DependencyCategory;
 
@@ -29,12 +37,14 @@ pub(super) type Modules = Vec<String>;
 pub(super) type Roots = Vec<String>;
 pub(super) type Restrictions = Vec<String>;
 
+#[cacheable]
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
 pub struct Resolve {
   /// Tried detect file with this extension.
   pub extensions: Option<Extensions>,
   /// Maps key to value.
   /// The reason for using `Vec` instead `HashMap` to keep the order.
+  #[with(AsOption<AsVec<AsTuple2<AsCacheable, AsVec<AsPreset>>>>)]
   pub alias: Option<Alias>,
   /// Prefer to resolve request as relative request and
   /// fallback to resolving as modules.
@@ -60,6 +70,7 @@ pub struct Resolve {
   pub modules: Option<Modules>,
   /// Same as `alias`, but only used if default resolving fails
   /// Default is `[]`
+  #[with(AsOption<AsVec<AsTuple2<AsCacheable, AsVec<AsPreset>>>>)]
   pub fallback: Option<Fallback>,
   /// Request passed to resolve is already fully specified and
   /// extensions or main files are not resolved for it.
@@ -70,6 +81,7 @@ pub struct Resolve {
   pub exports_fields: Option<ExportsFields>,
   /// A list map ext to another.
   /// Default is `[]`
+  #[with(AsOption<AsVec<AsTuple2>>)]
   pub extension_alias: Option<ExtensionAlias>,
   /// Specify a field, such as browser, to be parsed according to [this specification](https://github.com/defunctzombie/package-browser-field-spec).
   pub alias_fields: Option<AliasFields>,
@@ -91,12 +103,14 @@ pub struct Resolve {
 /// Tsconfig Options
 ///
 /// Derived from [tsconfig-paths-webpack-plugin](https://github.com/dividab/tsconfig-paths-webpack-plugin#options)
+#[cacheable]
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct TsconfigOptions {
   /// Allows you to specify where to find the TypeScript configuration file.
   /// You may provide
   /// * a relative path to the configuration file. It will be resolved relative to cwd.
   /// * an absolute path to the configuration file.
+  #[with(AsString)]
   pub config_file: PathBuf,
 
   /// Support for Typescript Project References.
@@ -112,6 +126,7 @@ impl From<TsconfigOptions> for rspack_resolver::TsconfigOptions {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub enum TsconfigReferences {
   #[default]
@@ -119,7 +134,7 @@ pub enum TsconfigReferences {
   /// Use the `references` field from tsconfig read from `config_file`.
   Auto,
   /// Manually provided relative or absolute path.
-  Paths(Vec<PathBuf>),
+  Paths(#[with(AsVec<AsString>)] Vec<PathBuf>),
 }
 
 impl From<TsconfigReferences> for rspack_resolver::TsconfigReferences {
@@ -171,8 +186,21 @@ impl Resolve {
 
 type DependencyCategoryStr = Cow<'static, str>;
 
+#[cacheable(with=AsBytes)]
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq)]
 pub struct ByDependency(LinkedHashMap<DependencyCategoryStr, Resolve>);
+
+impl AsBytesConverter for ByDependency {
+  fn to_bytes(&self) -> Result<Vec<u8>, rspack_cacheable::SerializeError> {
+    todo!()
+  }
+  fn from_bytes(s: &[u8]) -> Result<Self, rspack_cacheable::DeserializeError>
+  where
+    Self: Sized,
+  {
+    todo!()
+  }
+}
 
 impl FromIterator<(DependencyCategoryStr, Resolve)> for ByDependency {
   fn from_iter<I: IntoIterator<Item = (DependencyCategoryStr, Resolve)>>(i: I) -> Self {

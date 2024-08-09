@@ -1,9 +1,9 @@
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_core::{
-  cache::CacheContext, get_dependency_used_by_exports_condition, module_id, AsContextDependency,
-  Dependency, DependencyCategory, DependencyCondition, DependencyId, DependencyTemplate,
-  DependencyType, ErrorSpan, ModuleDependency, RuntimeGlobals, TemplateContext,
-  TemplateReplaceSource, UsedByExports,
+  get_dependency_used_by_exports_condition, module_id, AsContextDependency, Dependency,
+  DependencyCategory, DependencyCondition, DependencyId, DependencyTemplate, DependencyType,
+  ErrorSpan, ModuleDependency, RuntimeGlobals, TemplateContext, TemplateReplaceSource,
+  UsedByExports,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -46,7 +46,7 @@ impl URLDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for URLDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -83,6 +83,7 @@ impl ModuleDependency for URLDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for URLDependency {
   fn apply(
     &self,

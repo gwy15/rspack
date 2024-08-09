@@ -3,7 +3,6 @@ use rspack_cacheable::{
   with::{AsOption, AsRefStr, AsVec},
 };
 use rspack_collections::IdentifierSet;
-use rspack_core::cache::CacheContext;
 use rspack_core::{
   create_exports_object_referenced, export_from_import, get_dependency_used_by_exports_condition,
   get_exports_type, AsContextDependency, ConnectionState, Dependency, DependencyCategory,
@@ -123,6 +122,7 @@ impl HarmonyImportSpecifierDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyImportSpecifierDependency {
   fn apply(
     &self,
@@ -224,7 +224,7 @@ impl DependencyTemplate for HarmonyImportSpecifierDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for HarmonyImportSpecifierDependency {
   fn id(&self) -> &DependencyId {
     &self.id

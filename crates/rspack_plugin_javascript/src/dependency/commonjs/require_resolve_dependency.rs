@@ -1,8 +1,8 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  cache::CacheContext, module_id, AsContextDependency, Dependency, DependencyCategory,
-  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ExtendedReferencedExport,
-  ModuleDependency, ModuleGraph, RuntimeSpec, TemplateContext, TemplateReplaceSource,
+  module_id, AsContextDependency, Dependency, DependencyCategory, DependencyId, DependencyTemplate,
+  DependencyType, ErrorSpan, ExtendedReferencedExport, ModuleDependency, ModuleGraph, RuntimeSpec,
+  TemplateContext, TemplateReplaceSource,
 };
 
 #[cacheable]
@@ -38,7 +38,7 @@ impl RequireResolveDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for RequireResolveDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -87,6 +87,7 @@ impl ModuleDependency for RequireResolveDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for RequireResolveDependency {
   fn apply(
     &self,

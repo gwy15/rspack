@@ -127,6 +127,7 @@ impl ModuleGraphConnection {
   }
 }
 
+#[rspack_cacheable::cacheable]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ConnectionState {
   Bool(bool),

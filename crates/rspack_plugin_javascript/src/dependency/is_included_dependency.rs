@@ -1,8 +1,8 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  cache::CacheContext, AsContextDependency, Dependency, DependencyId, DependencyTemplate,
-  DependencyType, ExtendedReferencedExport, ModuleDependency, ModuleGraph, RuntimeSpec,
-  TemplateContext, TemplateReplaceSource,
+  AsContextDependency, Dependency, DependencyId, DependencyTemplate, DependencyType,
+  ExtendedReferencedExport, ModuleDependency, ModuleGraph, RuntimeSpec, TemplateContext,
+  TemplateReplaceSource,
 };
 
 #[cacheable]
@@ -27,7 +27,7 @@ impl WebpackIsIncludedDependency {
 
 impl AsContextDependency for WebpackIsIncludedDependency {}
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for WebpackIsIncludedDependency {
   fn dependency_type(&self) -> &DependencyType {
     &DependencyType::WebpackIsIncluded
@@ -56,6 +56,7 @@ impl ModuleDependency for WebpackIsIncludedDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for WebpackIsIncludedDependency {
   fn apply(
     &self,

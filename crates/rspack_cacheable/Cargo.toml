@@ -10,6 +10,7 @@ hashlink        = { workspace = true }
 indexmap        = { workspace = true }
 inventory       = { workspace = true }
 json            = { workspace = true }
+lightningcss    = { workspace = true }
 once_cell       = { workspace = true }
 ptr_meta        = { workspace = true }
 rkyv            = { workspace = true, features = ["validation", "strict"] }

@@ -1,8 +1,7 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  cache::CacheContext, AsContextDependency, Dependency, DependencyCategory, DependencyId,
-  DependencyTemplate, DependencyType, ErrorSpan, ModuleDependency, TemplateContext,
-  TemplateReplaceSource,
+  AsContextDependency, Dependency, DependencyCategory, DependencyId, DependencyTemplate,
+  DependencyType, ErrorSpan, ModuleDependency, TemplateContext, TemplateReplaceSource,
 };
 
 #[cacheable]
@@ -27,7 +26,7 @@ impl CssImportDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for CssImportDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -60,6 +59,7 @@ impl ModuleDependency for CssImportDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for CssImportDependency {
   fn apply(
     &self,

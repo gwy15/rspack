@@ -1,8 +1,7 @@
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_core::{
-  cache::CacheContext, module_id, AsContextDependency, Dependency, DependencyCategory,
-  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ModuleDependency, TemplateContext,
-  TemplateReplaceSource,
+  module_id, AsContextDependency, Dependency, DependencyCategory, DependencyId, DependencyTemplate,
+  DependencyType, ErrorSpan, ModuleDependency, TemplateContext, TemplateReplaceSource,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -29,7 +28,7 @@ impl ImportMetaHotDeclineDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for ImportMetaHotDeclineDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -66,6 +65,7 @@ impl ModuleDependency for ImportMetaHotDeclineDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ImportMetaHotDeclineDependency {
   fn apply(
     &self,

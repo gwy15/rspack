@@ -20,7 +20,7 @@ pub fn impl_runtime_module(
     fields.named.push(
       syn::Field::parse_named
         .parse2(quote! {
-            #[with(rspack_cacheable::with::AsOption<rspack_cacheable::with::AsBytes>)]
+            #[with(rspack_cacheable::with::AsOption<rspack_cacheable::with::AsPreset>)]
             pub custom_source: Option<::rspack_core::rspack_sources::BoxSource>
         })
         .expect("Failed to parse new field for custom_source"),

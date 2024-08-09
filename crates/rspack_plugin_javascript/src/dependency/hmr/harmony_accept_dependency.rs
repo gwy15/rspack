@@ -1,3 +1,4 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
   import_statement, runtime_condition_expression, AsDependency, DependencyId, DependencyTemplate,
   ErrorSpan, RuntimeCondition, TemplateContext, TemplateReplaceSource,
@@ -5,6 +6,7 @@ use rspack_core::{
 
 use crate::dependency::get_import_emitted_runtime;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct HarmonyAcceptDependency {
   range: ErrorSpan,
@@ -22,6 +24,7 @@ impl HarmonyAcceptDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyAcceptDependency {
   fn apply(
     &self,

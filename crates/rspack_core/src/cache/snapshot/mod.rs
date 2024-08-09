@@ -32,6 +32,10 @@ impl Snapshot {
       .as_secs();
     let mut helper = StrategyHelper::default();
     for path in files {
+      if !path.exists() {
+        // TODO Check why non-existent files are being sent here
+        continue;
+      }
       let path_str = path.to_str().expect("should can convert to string");
       if self.option.is_immutable_path(path_str) {
         continue;
@@ -41,7 +45,7 @@ impl Snapshot {
           self.storage.set(
             SCOPE,
             path_str.as_bytes().to_vec(),
-            rspack_cache::to_bytes(&Strategy::LibVersion(s)),
+            rspack_cacheable::to_bytes::<_, ()>(&Strategy::LibVersion(s), &mut ()).unwrap(),
           );
         }
       }
@@ -49,7 +53,8 @@ impl Snapshot {
       self.storage.set(
         SCOPE,
         path_str.as_bytes().to_vec(),
-        rspack_cache::to_bytes(&Strategy::CompileTime(compiler_time)),
+        rspack_cacheable::to_bytes::<_, ()>(&Strategy::CompileTime(compiler_time), &mut ())
+          .unwrap(),
       );
     }
   }
@@ -69,7 +74,8 @@ impl Snapshot {
 
     for (key, value) in self.storage.get_all(SCOPE) {
       let path = PathBuf::from(String::from_utf8(key).unwrap());
-      let strategy: Strategy = rspack_cache::from_bytes::<Strategy>(&value);
+      let strategy: Strategy =
+        rspack_cacheable::from_bytes::<Strategy, ()>(&value, &mut ()).unwrap();
       match helper.validate(&path, &strategy) {
         ValidateResult::Modified => {
           modified_files.push(path);

@@ -139,6 +139,18 @@ mod t {
     id: DependencyId,
   }
 
+  impl rspack_cacheable::r#dyn::SerializeDyn for TestDep {
+    fn serialize_dyn(
+      &self,
+      serializer: &mut rspack_cacheable::CacheableSerializer,
+    ) -> Result<usize, rspack_cacheable::SerializeError> {
+      unreachable!()
+    }
+    fn archived_type_id(&self) -> u64 {
+      unreachable!()
+    }
+  }
+
   impl TestDep {
     fn new(ids: Vec<&'static str>) -> Self {
       Self {

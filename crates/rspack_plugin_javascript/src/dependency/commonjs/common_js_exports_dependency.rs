@@ -3,11 +3,11 @@ use rspack_cacheable::{
   with::{AsOption, AsRefStr, AsTuple2, AsVec},
 };
 use rspack_core::{
-  cache::CacheContext, property_access, AsContextDependency, AsModuleDependency, Dependency,
-  DependencyCategory, DependencyId, DependencyTemplate, DependencyType, ExportNameOrSpec,
-  ExportSpec, ExportsOfExportsSpec, ExportsSpec, InitFragmentExt, InitFragmentKey,
-  InitFragmentStage, ModuleGraph, NormalInitFragment, RuntimeGlobals, TemplateContext,
-  TemplateReplaceSource, UsedName,
+  property_access, AsContextDependency, AsModuleDependency, Dependency, DependencyCategory,
+  DependencyId, DependencyTemplate, DependencyType, ExportNameOrSpec, ExportSpec,
+  ExportsOfExportsSpec, ExportsSpec, InitFragmentExt, InitFragmentKey, InitFragmentStage,
+  ModuleGraph, NormalInitFragment, RuntimeGlobals, TemplateContext, TemplateReplaceSource,
+  UsedName,
 };
 use swc_core::atoms::Atom;
 
@@ -80,7 +80,7 @@ impl CommonJsExportsDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for CommonJsExportsDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -109,6 +109,7 @@ impl Dependency for CommonJsExportsDependency {
 
 impl AsModuleDependency for CommonJsExportsDependency {}
 
+#[cacheable_dyn]
 impl DependencyTemplate for CommonJsExportsDependency {
   fn apply(
     &self,

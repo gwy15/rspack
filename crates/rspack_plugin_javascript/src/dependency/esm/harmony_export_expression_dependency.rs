@@ -1,7 +1,6 @@
 use itertools::Itertools;
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::{Identifier, IdentifierSet};
-use rspack_core::cache::CacheContext;
 use rspack_core::{
   property_access, AsContextDependency, AsModuleDependency, Compilation, Dependency,
   DependencyType, ErrorSpan, ExportNameOrSpec, ExportsOfExportsSpec, ExportsSpec,
@@ -66,7 +65,7 @@ impl HarmonyExportExpressionDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for HarmonyExportExpressionDependency {
   fn dependency_type(&self) -> &DependencyType {
     &DependencyType::EsmExportExpression
@@ -106,6 +105,7 @@ impl Dependency for HarmonyExportExpressionDependency {
 impl AsModuleDependency for HarmonyExportExpressionDependency {}
 impl AsContextDependency for HarmonyExportExpressionDependency {}
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyExportExpressionDependency {
   fn apply(
     &self,

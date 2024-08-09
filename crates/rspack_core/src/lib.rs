@@ -25,7 +25,7 @@ pub mod external_module;
 pub use external_module::*;
 mod logger;
 pub use logger::*;
-mod cache;
+pub mod cache;
 mod normal_module;
 pub mod old_cache;
 mod raw_module;
@@ -97,6 +97,10 @@ pub use resolver::*;
 pub mod concatenated_module;
 pub mod reserved_names;
 
+use rspack_cacheable::{
+  cacheable,
+  with::{AsRefStr, AsRefStrConverter},
+};
 pub use rspack_loader_runner::{
   get_scheme, parse_resource, AdditionalData, ResourceData, ResourceParsedData, Scheme,
   BUILTIN_LOADER_PREFIX,
@@ -107,6 +111,7 @@ pub use rspack_sources;
 #[cfg(debug_assertions)]
 pub mod debug_info;
 
+#[cacheable(with=AsRefStr)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SourceType {
   JavaScript,
@@ -124,22 +129,28 @@ pub enum SourceType {
   Runtime,
 }
 
+impl SourceType {
+  pub fn as_str(&self) -> &str {
+    match self {
+      SourceType::JavaScript => "javascript",
+      SourceType::Css => "css",
+      SourceType::Wasm => "wasm",
+      SourceType::Asset => "asset",
+      SourceType::Expose => "expose",
+      SourceType::Remote => "remote",
+      SourceType::ShareInit => "share-init",
+      SourceType::ConsumeShared => "consume-shared",
+      SourceType::Unknown => "unknown",
+      SourceType::CssImport => "css-import",
+      SourceType::Runtime => "runtime",
+      SourceType::Custom(source_type) => source_type.as_str(),
+    }
+  }
+}
+
 impl std::fmt::Display for SourceType {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    match self {
-      SourceType::JavaScript => write!(f, "javascript"),
-      SourceType::Css => write!(f, "css"),
-      SourceType::Wasm => write!(f, "wasm"),
-      SourceType::Asset => write!(f, "asset"),
-      SourceType::Expose => write!(f, "expose"),
-      SourceType::Remote => write!(f, "remote"),
-      SourceType::ShareInit => write!(f, "share-init"),
-      SourceType::ConsumeShared => write!(f, "consume-shared"),
-      SourceType::Unknown => write!(f, "unknown"),
-      SourceType::CssImport => write!(f, "css-import"),
-      SourceType::Custom(source_type) => f.write_str(source_type),
-      SourceType::Runtime => write!(f, "runtime"),
-    }
+    write!(f, "{}", self.as_str(),)
   }
 }
 
@@ -156,11 +167,25 @@ impl From<&str> for SourceType {
       "consume-shared" => Self::ConsumeShared,
       "unknown" => Self::Unknown,
       "css-import" => Self::CssImport,
+      "runtime" => Self::Runtime,
       other => SourceType::Custom(other.into()),
     }
   }
 }
 
+impl AsRefStrConverter for SourceType {
+  fn as_str(&self) -> &str {
+    self.as_str()
+  }
+  fn from_str(s: &str) -> Self
+  where
+    Self: Sized,
+  {
+    Self::from(s)
+  }
+}
+
+#[cacheable(with=AsRefStr)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ModuleType {
   Json,
@@ -291,6 +316,18 @@ impl From<&str> for ModuleType {
 }
 
 pub type ModuleLayer = String;
+
+impl AsRefStrConverter for ModuleType {
+  fn as_str(&self) -> &str {
+    self.as_str()
+  }
+  fn from_str(s: &str) -> Self
+  where
+    Self: Sized,
+  {
+    Self::from(s)
+  }
+}
 
 pub type ChunkByUkey = Database<Chunk>;
 pub type ChunkGroupByUkey = Database<ChunkGroup>;

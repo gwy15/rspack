@@ -1,27 +1,28 @@
 use std::hash::Hash;
 use std::path::PathBuf;
 
-use once_cell::sync::Lazy;
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsString, AsVec},
+};
 use rspack_collections::{Identifiable, Identifier};
 use rspack_core::rspack_sources::Source;
 use rspack_core::{
   impl_module_meta_info, impl_source_map_config, AsyncDependenciesBlockIdentifier, BuildContext,
   BuildInfo, BuildMeta, BuildResult, CodeGenerationResult, Compilation, CompilerOptions,
-  ConcatenationScope, DependenciesBlock, DependencyId, DependencyType, FactoryMeta, Module,
-  ModuleFactory, ModuleFactoryCreateData, ModuleFactoryResult, RuntimeSpec, SourceType,
+  ConcatenationScope, DependenciesBlock, DependencyId, FactoryMeta, Module, ModuleFactory,
+  ModuleFactoryCreateData, ModuleFactoryResult, RuntimeSpec, SourceType,
 };
 use rspack_error::Result;
 use rspack_error::{impl_empty_diagnosable_trait, Diagnostic};
 use rspack_hash::{RspackHash, RspackHashDigest};
-use rustc_hash::FxHashSet;
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::css_dependency::CssDependency;
 use crate::plugin::{MODULE_TYPE, SOURCE_TYPE};
 
-pub(crate) static DEPENDENCY_TYPE: Lazy<DependencyType> =
-  Lazy::new(|| DependencyType::Custom("mini-extract-dep"));
-
 #[impl_source_map_config]
+#[cacheable]
 #[derive(Debug)]
 pub(crate) struct CssModule {
   pub(crate) identifier: String,
@@ -41,10 +42,14 @@ pub(crate) struct CssModule {
 
   identifier__: Identifier,
   cacheable: bool,
-  file_dependencies: FxHashSet<PathBuf>,
-  context_dependencies: FxHashSet<PathBuf>,
-  missing_dependencies: FxHashSet<PathBuf>,
-  build_dependencies: FxHashSet<PathBuf>,
+  #[with(AsVec<AsString>)]
+  file_dependencies: HashSet<PathBuf>,
+  #[with(AsVec<AsString>)]
+  context_dependencies: HashSet<PathBuf>,
+  #[with(AsVec<AsString>)]
+  missing_dependencies: HashSet<PathBuf>,
+  #[with(AsVec<AsString>)]
+  build_dependencies: HashSet<PathBuf>,
 }
 
 impl Hash for CssModule {
@@ -103,6 +108,7 @@ impl CssModule {
   }
 }
 
+#[cacheable_dyn]
 #[async_trait::async_trait]
 impl Module for CssModule {
   impl_module_meta_info!();

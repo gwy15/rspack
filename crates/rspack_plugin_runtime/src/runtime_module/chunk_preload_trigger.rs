@@ -13,6 +13,8 @@ use rustc_hash::FxHasher;
 #[derive(Debug)]
 pub struct ChunkPreloadTriggerRuntimeModule {
   id: Identifier,
+  // TODO fix it
+  #[with(rspack_cacheable::with::Skip)]
   chunk_map: IndexMap<String, Vec<String>, BuildHasherDefault<FxHasher>>,
 }
 

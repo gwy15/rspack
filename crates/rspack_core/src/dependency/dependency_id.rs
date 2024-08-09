@@ -6,6 +6,7 @@ use swc_core::ecma::atoms::Atom;
 
 use crate::ModuleGraph;
 
+#[rspack_cacheable::cacheable]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd, Serialize)]
 pub struct DependencyId(u32);
 

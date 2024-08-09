@@ -3,8 +3,8 @@ use rspack_cacheable::{
   with::{AsRefStr, AsVec},
 };
 use rspack_core::{
-  cache::CacheContext, module_id, property_access, to_normal_comment, ExportsType,
-  ExtendedReferencedExport, ModuleGraph, RuntimeGlobals, RuntimeSpec, UsedName,
+  module_id, property_access, to_normal_comment, ExportsType, ExtendedReferencedExport,
+  ModuleGraph, RuntimeGlobals, RuntimeSpec, UsedName,
 };
 use rspack_core::{AsContextDependency, Dependency, DependencyCategory, DependencyLocation};
 use rspack_core::{DependencyId, DependencyTemplate};
@@ -49,7 +49,7 @@ impl CommonJsFullRequireDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for CommonJsFullRequireDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -109,6 +109,7 @@ impl ModuleDependency for CommonJsFullRequireDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for CommonJsFullRequireDependency {
   fn apply(
     &self,

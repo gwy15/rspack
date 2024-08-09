@@ -1,7 +1,7 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  cache::CacheContext, AsContextDependency, AsModuleDependency, Dependency, DependencyId,
-  DependencyTemplate, DependencyType, ErrorSpan, TemplateContext, TemplateReplaceSource,
+  AsContextDependency, AsModuleDependency, Dependency, DependencyId, DependencyTemplate,
+  DependencyType, ErrorSpan, TemplateContext, TemplateReplaceSource,
 };
 use rspack_error::ErrorLocation;
 
@@ -28,7 +28,7 @@ impl HarmonyExportHeaderDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for HarmonyExportHeaderDependency {
   fn id(&self) -> &rspack_core::DependencyId {
     &self.id
@@ -43,6 +43,7 @@ impl Dependency for HarmonyExportHeaderDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyExportHeaderDependency {
   fn apply(
     &self,

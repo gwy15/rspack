@@ -1,9 +1,8 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
-  cache::CacheContext, get_chunk_from_ukey, AsContextDependency, Dependency, DependencyCategory,
-  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ExtendedReferencedExport,
-  ModuleDependency, ModuleGraph, RuntimeGlobals, RuntimeSpec, TemplateContext,
-  TemplateReplaceSource,
+  get_chunk_from_ukey, AsContextDependency, Dependency, DependencyCategory, DependencyId,
+  DependencyTemplate, DependencyType, ErrorSpan, ExtendedReferencedExport, ModuleDependency,
+  ModuleGraph, RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource,
 };
 
 #[cacheable]
@@ -36,7 +35,7 @@ impl WorkerDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for WorkerDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -77,6 +76,7 @@ impl ModuleDependency for WorkerDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for WorkerDependency {
   fn apply(
     &self,

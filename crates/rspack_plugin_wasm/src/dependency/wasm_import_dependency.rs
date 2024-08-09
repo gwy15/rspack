@@ -1,8 +1,7 @@
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_core::{
-  cache::CacheContext, AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory,
-  DependencyId, DependencyType, ErrorSpan, ExtendedReferencedExport, ModuleDependency, ModuleGraph,
-  RuntimeSpec,
+  AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory, DependencyId,
+  DependencyType, ErrorSpan, ExtendedReferencedExport, ModuleDependency, ModuleGraph, RuntimeSpec,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -36,7 +35,7 @@ impl WasmImportDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for WasmImportDependency {
   fn id(&self) -> &DependencyId {
     &self.id

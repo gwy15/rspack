@@ -1,9 +1,9 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::IdentifierSet;
 use rspack_core::{
-  cache::CacheContext, filter_runtime, runtime_condition_expression, AsContextDependency,
-  AsModuleDependency, ConnectionState, Dependency, DependencyId, DependencyTemplate, ModuleGraph,
-  ModuleIdentifier, TemplateContext, TemplateReplaceSource, UsageState, UsedByExports, UsedName,
+  filter_runtime, runtime_condition_expression, AsContextDependency, AsModuleDependency,
+  ConnectionState, Dependency, DependencyId, DependencyTemplate, ModuleGraph, ModuleIdentifier,
+  TemplateContext, TemplateReplaceSource, UsageState, UsedByExports, UsedName,
 };
 
 #[cacheable]
@@ -28,7 +28,7 @@ impl PureExpressionDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for PureExpressionDependency {
   fn id(&self) -> &rspack_core::DependencyId {
     &self.id
@@ -49,6 +49,7 @@ impl Dependency for PureExpressionDependency {
 
 impl AsModuleDependency for PureExpressionDependency {}
 
+#[cacheable_dyn]
 impl DependencyTemplate for PureExpressionDependency {
   fn apply(&self, source: &mut TemplateReplaceSource, ctx: &mut TemplateContext) {
     let condition = match self.used_by_exports {

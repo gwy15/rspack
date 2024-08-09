@@ -11,12 +11,10 @@ mod kw {
 }
 pub struct CacheableArgs {
   pub with: Option<syn::Path>,
-  pub type_name: bool,
 }
 impl Parse for CacheableArgs {
   fn parse(input: ParseStream) -> Result<Self> {
     let mut with = None;
-    let mut type_name = false;
 
     let mut needs_punct = false;
     while !input.is_empty() {
@@ -32,13 +30,6 @@ impl Parse for CacheableArgs {
         input.parse::<kw::with>()?;
         input.parse::<Token![=]>()?;
         with = Some(input.parse::<syn::Path>()?);
-      } else if input.peek(kw::type_name) {
-        if type_name {
-          return Err(input.error("duplicate type_name argument"));
-        }
-
-        input.parse::<kw::type_name>()?;
-        type_name = true;
       } else {
         return Err(
           input.error("expected serialize = \"...\" or deserialize = \"...\" parameters"),
@@ -48,34 +39,18 @@ impl Parse for CacheableArgs {
       needs_punct = true;
     }
 
-    if with.is_some() && type_name {
-      return Err(input.error("can not use `type_name` with `with=`"));
-    }
-
-    Ok(Self { with, type_name })
+    Ok(Self { with })
   }
 }
 
-pub fn impl_cacheable(tokens: TokenStream, type_name: bool) -> TokenStream {
+pub fn impl_cacheable(tokens: TokenStream) -> TokenStream {
   let input = parse_macro_input!(tokens as Item);
   let item_ident = match &input {
     Item::Enum(input) => &input.ident,
     Item::Struct(input) => &input.ident,
     _ => panic!("expect enum or struct"),
   };
-  let type_name_code = if type_name {
-    let archived_trait = Ident::new(&format!("Archived{item_ident}"), item_ident.span());
-    quote! {
-        impl rspack_cacheable::__private::rkyv_typename::TypeName for #archived_trait {
-            fn build_type_name<F: FnMut(&str)>(mut f: F) {
-                f(core::concat!(core::module_path!(), "::"));
-                f(&core::line!().to_string());
-            }
-        }
-    }
-  } else {
-    quote! {}
-  };
+  let archived_trait = Ident::new(&format!("Archived{item_ident}"), item_ident.span());
   quote! {
       #[derive(
           rspack_cacheable::__private::rkyv::Archive,
@@ -85,7 +60,12 @@ pub fn impl_cacheable(tokens: TokenStream, type_name: bool) -> TokenStream {
       #[archive(check_bytes, crate="rspack_cacheable::__private::rkyv")]
       #input
 
-      #type_name_code
+      impl rspack_cacheable::__private::rkyv_typename::TypeName for #archived_trait {
+          fn build_type_name<F: FnMut(&str)>(mut f: F) {
+              f(core::concat!(core::module_path!(), "::"));
+              f(&core::line!().to_string());
+          }
+      }
   }
   .into()
 }

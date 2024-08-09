@@ -6,6 +6,10 @@ use std::{
 
 use anymap::CloneAny;
 use once_cell::sync::OnceCell;
+use rspack_cacheable::{
+  cacheable,
+  with::{AsInner, AsOption, AsString},
+};
 use rspack_error::{Error, Result};
 
 use crate::{get_scheme, Scheme};
@@ -103,11 +107,13 @@ impl Debug for Content {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ResourceData {
   /// Resource with absolute path, query and fragment
   pub resource: String,
   /// Absolute resource path only
+  #[with(AsOption<AsString>)]
   pub resource_path: Option<PathBuf>,
   /// Resource query with `?` prefix
   pub resource_query: Option<String>,
@@ -118,6 +124,7 @@ pub struct ResourceData {
   pub parameters: Option<String>,
   pub encoding: Option<String>,
   pub encoded_content: Option<String>,
+  #[with(AsInner)]
   pub(crate) scheme: OnceCell<Scheme>,
 }
 
@@ -243,12 +250,15 @@ impl ResourceData {
 
 /// Used for [Rule.descriptionData](https://www.rspack.dev/config/module.html#ruledescriptiondata) and
 /// package.json.sideEffects in tree shaking.
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct DescriptionData {
   /// Path to package.json
+  #[with(AsString)]
   path: PathBuf,
 
   /// Raw package.json
+  #[with(AsInner<AsString>)]
   json: Arc<serde_json::Value>,
 }
 

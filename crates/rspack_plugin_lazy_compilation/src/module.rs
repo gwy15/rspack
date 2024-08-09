@@ -3,7 +3,6 @@ use std::{hash::Hash, path::PathBuf, sync::Arc};
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::Identifiable;
 use rspack_core::{
-  cache::CacheContext,
   impl_module_meta_info, module_namespace_promise,
   rspack_sources::{RawSource, Source},
   AsyncDependenciesBlock, AsyncDependenciesBlockIdentifier, BoxDependency, BuildContext, BuildInfo,
@@ -122,7 +121,7 @@ impl Diagnosable for LazyCompilationProxyModule {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 #[async_trait::async_trait]
 impl Module for LazyCompilationProxyModule {
   impl_module_meta_info!();

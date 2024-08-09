@@ -1,6 +1,7 @@
 #![feature(let_chains)]
 
 use async_trait::async_trait;
+use rspack_cacheable::{r#dyn::SerializeDyn, CacheableSerializer, SerializeError};
 use rspack_core::{Loader, LoaderContext, RunnerContext};
 use rspack_error::Result;
 use rspack_loader_runner::{DisplayWithSuffix, Identifiable, Identifier};
@@ -20,12 +21,22 @@ impl Loader<RunnerContext> for SimpleLoader {
 }
 impl Identifiable for SimpleLoader {
   fn identifier(&self) -> Identifier {
-    SIMPLE_LOADER_IDENTIFIER.into()
+    "builtin:test-simple-loader".into()
   }
 }
-pub const SIMPLE_LOADER_IDENTIFIER: &str = "builtin:test-simple-loader";
+
+impl SerializeDyn for SimpleLoader {
+  fn serialize_dyn(&self, _: &mut CacheableSerializer) -> Result<usize, SerializeError> {
+    unreachable!()
+  }
+
+  fn archived_type_id(&self) -> u64 {
+    unreachable!()
+  }
+}
 
 pub struct SimpleAsyncLoader;
+
 #[async_trait]
 impl Loader<RunnerContext> for SimpleAsyncLoader {
   async fn run(&self, loader_context: &mut LoaderContext<RunnerContext>) -> Result<()> {
@@ -38,10 +49,19 @@ impl Loader<RunnerContext> for SimpleAsyncLoader {
 }
 impl Identifiable for SimpleAsyncLoader {
   fn identifier(&self) -> Identifier {
-    SIMPLE_ASYNC_LOADER_IDENTIFIER.into()
+    "builtin:test-simple-async-loader".into()
   }
 }
-pub const SIMPLE_ASYNC_LOADER_IDENTIFIER: &str = "builtin:test-simple-async-loader";
+
+impl SerializeDyn for SimpleAsyncLoader {
+  fn serialize_dyn(&self, _: &mut CacheableSerializer) -> Result<usize, SerializeError> {
+    unreachable!()
+  }
+
+  fn archived_type_id(&self) -> u64 {
+    unreachable!()
+  }
+}
 
 pub struct PitchingLoader;
 #[async_trait]
@@ -62,7 +82,16 @@ impl Loader<RunnerContext> for PitchingLoader {
 }
 impl Identifiable for PitchingLoader {
   fn identifier(&self) -> Identifier {
-    PITCHING_LOADER_IDENTIFIER.into()
+    "builtin:test-pitching-loader".into()
   }
 }
-pub const PITCHING_LOADER_IDENTIFIER: &str = "builtin:test-pitching-loader";
+
+impl SerializeDyn for PitchingLoader {
+  fn serialize_dyn(&self, _: &mut CacheableSerializer) -> Result<usize, SerializeError> {
+    unreachable!()
+  }
+
+  fn archived_type_id(&self) -> u64 {
+    unreachable!()
+  }
+}

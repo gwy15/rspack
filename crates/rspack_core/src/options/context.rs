@@ -4,13 +4,16 @@ use std::{
   path::{Path, PathBuf},
 };
 
+use rspack_cacheable::{cacheable, with::AsRefStr};
 use rspack_loader_runner::ResourceData;
 use rspack_util::atom::Atom;
 
 use crate::{contextify, parse_resource};
 
+#[cacheable]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Context {
+  #[with(AsRefStr)]
   inner: Atom,
 }
 

@@ -1,9 +1,8 @@
 use std::{fs, path::PathBuf, time::UNIX_EPOCH};
 
-use rspack_cache::cacheable;
 use rustc_hash::FxHashMap as HashMap;
 
-#[cacheable]
+#[rspack_cacheable::cacheable]
 #[derive(Debug, PartialEq)]
 pub enum Strategy {
   LibVersion(String),

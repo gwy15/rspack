@@ -5,7 +5,6 @@ use async_trait::async_trait;
 use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_collections::{Identifiable, Identifier};
 use rspack_core::{
-  cache::CacheContext,
   impl_module_meta_info, impl_source_map_config,
   rspack_sources::{RawSource, Source, SourceExt},
   AsyncDependenciesBlockIdentifier, BoxDependency, BuildContext, BuildInfo, BuildMeta, BuildResult,
@@ -84,7 +83,7 @@ impl DependenciesBlock for FallbackModule {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 #[async_trait]
 impl Module for FallbackModule {
   impl_module_meta_info!();

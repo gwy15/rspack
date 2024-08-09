@@ -1,10 +1,9 @@
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_collections::IdentifierSet;
 use rspack_core::{
-  cache::CacheContext, AsContextDependency, AsModuleDependency, Dependency, DependencyCategory,
-  DependencyId, DependencyTemplate, DependencyType, ExportNameOrSpec, ExportsOfExportsSpec,
-  ExportsSpec, HarmonyExportInitFragment, ModuleGraph, TemplateContext, TemplateReplaceSource,
-  UsedName,
+  AsContextDependency, AsModuleDependency, Dependency, DependencyCategory, DependencyId,
+  DependencyTemplate, DependencyType, ExportNameOrSpec, ExportsOfExportsSpec, ExportsSpec,
+  HarmonyExportInitFragment, ModuleGraph, TemplateContext, TemplateReplaceSource, UsedName,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -29,7 +28,7 @@ impl HarmonyExportSpecifierDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for HarmonyExportSpecifierDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -67,6 +66,7 @@ impl Dependency for HarmonyExportSpecifierDependency {
 
 impl AsModuleDependency for HarmonyExportSpecifierDependency {}
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyExportSpecifierDependency {
   fn apply(
     &self,

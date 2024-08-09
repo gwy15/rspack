@@ -3,9 +3,9 @@ use rspack_cacheable::{
   with::{AsOption, AsRefStr, AsVec},
 };
 use rspack_core::{
-  cache::CacheContext, module_namespace_promise, AsContextDependency, Dependency,
-  DependencyCategory, DependencyId, DependencyTemplate, DependencyType, ErrorSpan,
-  ImportAttributes, ModuleDependency, TemplateContext, TemplateReplaceSource,
+  module_namespace_promise, AsContextDependency, Dependency, DependencyCategory, DependencyId,
+  DependencyTemplate, DependencyType, ErrorSpan, ImportAttributes, ModuleDependency,
+  TemplateContext, TemplateReplaceSource,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -53,7 +53,7 @@ impl ImportEagerDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for ImportEagerDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -102,6 +102,7 @@ impl ModuleDependency for ImportEagerDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ImportEagerDependency {
   fn apply(
     &self,

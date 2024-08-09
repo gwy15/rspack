@@ -1,5 +1,4 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
-use rspack_core::cache::CacheContext;
 use rspack_core::{module_raw, AsModuleDependency, ContextDependency};
 use rspack_core::{ContextOptions, Dependency, DependencyCategory, DependencyId};
 use rspack_core::{DependencyTemplate, DependencyType, ErrorSpan};
@@ -40,7 +39,7 @@ impl ImportMetaContextDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for ImportMetaContextDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -89,6 +88,7 @@ impl ContextDependency for ImportMetaContextDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ImportMetaContextDependency {
   fn apply(
     &self,

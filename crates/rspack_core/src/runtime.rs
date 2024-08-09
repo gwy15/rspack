@@ -2,11 +2,15 @@ use std::collections::hash_map::IntoValues;
 use std::ops::{Deref, DerefMut};
 use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
+use dashmap::DashSet;
+use itertools::Itertools;
+use once_cell::sync::Lazy;
 use rspack_util::fx_hash::FxIndexSet;
 use rustc_hash::FxHashMap as HashMap;
 
 use crate::{EntryOptions, EntryRuntime};
 
+#[rspack_cacheable::cacheable(with=rspack_cacheable::with::AsString)]
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct RuntimeSpec(FxIndexSet<Arc<str>>);
 
@@ -48,6 +52,31 @@ impl IntoIterator for RuntimeSpec {
 
   fn into_iter(self) -> Self::IntoIter {
     self.0.into_iter()
+  }
+}
+
+pub static CACHED_RUNTIME_SPEC: Lazy<DashSet<Arc<str>>> = Lazy::new(Default::default);
+impl rspack_cacheable::with::AsStringConverter for RuntimeSpec {
+  fn to_string(&self) -> Result<String, rspack_cacheable::SerializeError> {
+    Ok(self.0.iter().map(|item| item.to_string()).join(","))
+  }
+  fn from_str(s: &str) -> Result<Self, rspack_cacheable::DeserializeError>
+  where
+    Self: Sized,
+  {
+    Ok(Self(
+      s.split(",")
+        .map(|item| {
+          if let Some(cached_str) = CACHED_RUNTIME_SPEC.get(item) {
+            cached_str.clone()
+          } else {
+            let s: Arc<str> = Arc::from(item);
+            CACHED_RUNTIME_SPEC.insert(s.clone());
+            s
+          }
+        })
+        .collect::<FxIndexSet<_>>(),
+    ))
   }
 }
 

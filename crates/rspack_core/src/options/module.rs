@@ -7,6 +7,10 @@ use async_recursion::async_recursion;
 use bitflags::bitflags;
 use derivative::Derivative;
 use futures::future::BoxFuture;
+use rspack_cacheable::{
+  cacheable,
+  with::{AsRefStr, AsRefStrConverter, Custom, CustomConverter},
+};
 use rspack_error::Result;
 use rspack_macros::MergeFrom;
 use rspack_regex::RspackRegex;
@@ -30,6 +34,7 @@ impl ParserOptionsByModuleType {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub enum ParserOptions {
   Asset(AssetParserOptions),
@@ -59,6 +64,7 @@ impl ParserOptions {
   get_variant!(get_javascript, Javascript, JavascriptParserOptions);
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom)]
 pub enum DynamicImportMode {
   Lazy,
@@ -82,6 +88,7 @@ impl From<&str> for DynamicImportMode {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum DynamicImportFetchPriority {
   Low,
@@ -110,6 +117,7 @@ impl fmt::Display for DynamicImportFetchPriority {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom)]
 pub enum JavascriptParserUrl {
   Enable,
@@ -127,6 +135,7 @@ impl From<&str> for JavascriptParserUrl {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom)]
 pub enum JavascriptParserOrder {
   Disable,
@@ -158,6 +167,7 @@ impl From<&str> for JavascriptParserOrder {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom)]
 pub enum ExportPresenceMode {
   None,
@@ -193,6 +203,7 @@ impl ExportPresenceMode {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom)]
 pub enum OverrideStrict {
   Strict,
@@ -209,6 +220,7 @@ impl From<&str> for OverrideStrict {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct JavascriptParserOptions {
   pub dynamic_import_mode: DynamicImportMode,
@@ -226,32 +238,38 @@ pub struct JavascriptParserOptions {
   pub override_strict: Option<OverrideStrict>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct AssetParserOptions {
   pub data_url_condition: Option<AssetParserDataUrl>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub enum AssetParserDataUrl {
   Options(AssetParserDataUrlOptions),
   // TODO: Function
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct AssetParserDataUrlOptions {
   pub max_size: Option<u32>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct CssParserOptions {
   pub named_exports: Option<bool>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct CssAutoParserOptions {
   pub named_exports: Option<bool>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct CssModuleParserOptions {
   pub named_exports: Option<bool>,
@@ -272,6 +290,7 @@ impl GeneratorOptionsByModuleType {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub enum GeneratorOptions {
   Asset(AssetGeneratorOptions),
@@ -328,11 +347,13 @@ impl GeneratorOptions {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct AssetInlineGeneratorOptions {
   pub data_url: Option<AssetGeneratorDataUrl>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct AssetResourceGeneratorOptions {
   pub emit: Option<bool>,
@@ -340,6 +361,7 @@ pub struct AssetResourceGeneratorOptions {
   pub public_path: Option<PublicPath>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct AssetGeneratorOptions {
   pub emit: Option<bool>,
@@ -356,9 +378,21 @@ pub struct AssetGeneratorDataUrlFnArgs {
 pub type AssetGeneratorDataUrlFn =
   Arc<dyn Fn(AssetGeneratorDataUrlFnArgs) -> Result<String> + Sync + Send>;
 
+#[cacheable(with=Custom<FnConverter>)]
 pub enum AssetGeneratorDataUrl {
   Options(AssetGeneratorDataUrlOptions),
   Func(AssetGeneratorDataUrlFn),
+}
+
+#[cacheable]
+pub struct FnConverter {}
+impl CustomConverter<AssetGeneratorDataUrl> for FnConverter {
+  fn from(data: &AssetGeneratorDataUrl) -> Result<Self, rspack_cacheable::SerializeError> {
+    todo!()
+  }
+  fn to(self) -> Result<AssetGeneratorDataUrl, rspack_cacheable::DeserializeError> {
+    todo!()
+  }
 }
 
 impl fmt::Debug for AssetGeneratorDataUrl {
@@ -385,12 +419,14 @@ impl MergeFrom for AssetGeneratorDataUrl {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct AssetGeneratorDataUrlOptions {
   pub encoding: Option<DataUrlEncoding>,
   pub mimetype: Option<String>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub enum DataUrlEncoding {
   None,
@@ -416,12 +452,14 @@ impl From<String> for DataUrlEncoding {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct CssGeneratorOptions {
   pub exports_only: Option<bool>,
   pub es_module: Option<bool>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct CssAutoGeneratorOptions {
   pub exports_convention: Option<CssExportsConvention>,
@@ -430,6 +468,7 @@ pub struct CssAutoGeneratorOptions {
   pub es_module: Option<bool>,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct CssModuleGeneratorOptions {
   pub exports_convention: Option<CssExportsConvention>,
@@ -438,9 +477,21 @@ pub struct CssModuleGeneratorOptions {
   pub es_module: Option<bool>,
 }
 
+#[cacheable(with=AsRefStr)]
 #[derive(Debug, Clone, MergeFrom)]
 pub struct LocalIdentName {
   pub template: crate::FilenameTemplate,
+}
+
+impl AsRefStrConverter for LocalIdentName {
+  fn as_str(&self) -> &str {
+    self.template.as_str()
+  }
+  fn from_str(s: &str) -> Self {
+    Self {
+      template: crate::FilenameTemplate::from_str(s),
+    }
+  }
 }
 
 impl From<String> for LocalIdentName {
@@ -451,9 +502,11 @@ impl From<String> for LocalIdentName {
   }
 }
 
+#[cacheable]
+#[derive(Debug, Clone, Copy)]
+struct ExportsConventionFlags(u8);
 bitflags! {
-  #[derive(Debug, Clone, Copy)]
-  struct ExportsConventionFlags: u8 {
+  impl ExportsConventionFlags: u8 {
     const ASIS = 1 << 0;
     const CAMELCASE = 1 << 1;
     const DASHES = 1 << 2;
@@ -466,6 +519,7 @@ impl MergeFrom for ExportsConventionFlags {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, MergeFrom)]
 pub struct CssExportsConvention(ExportsConventionFlags);
 

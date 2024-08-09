@@ -134,6 +134,11 @@ pub struct ModuleGraphPartial {
   dep_meta_map: HashMap<DependencyId, DependencyExtraMeta>,
 }
 
+// 1. module -> make -> module readonly
+// 2. treeshaking xxx(module -> export info)
+
+// compilation get_module_graph --> moduleGraph == make moduleGraph + XX
+
 #[derive(Debug, Default)]
 pub struct ModuleGraph<'a> {
   partials: Vec<&'a ModuleGraphPartial>,

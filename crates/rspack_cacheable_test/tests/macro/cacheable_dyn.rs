@@ -10,7 +10,7 @@ fn test_cacheable_dyn_macro() {
     fn name(&self) -> &str;
   }
 
-  #[cacheable(type_name)]
+  #[cacheable]
   struct Dog {
     color: String,
   }
@@ -24,7 +24,7 @@ fn test_cacheable_dyn_macro() {
     }
   }
 
-  #[cacheable(type_name)]
+  #[cacheable]
   struct Cat {
     color: String,
   }
@@ -80,7 +80,7 @@ fn test_cacheable_dyn_macro_with_generics() {
     fn name(&self) -> T;
   }
 
-  #[cacheable(type_name)]
+  #[cacheable]
   struct Dog {
     color: String,
   }
@@ -94,7 +94,7 @@ fn test_cacheable_dyn_macro_with_generics() {
     }
   }
 
-  #[cacheable(type_name)]
+  #[cacheable]
   struct Cat {
     color: String,
   }

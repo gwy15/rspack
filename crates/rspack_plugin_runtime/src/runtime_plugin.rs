@@ -19,12 +19,12 @@ use crate::runtime_module::{
   BaseUriRuntimeModule, ChunkNameRuntimeModule, ChunkPrefetchPreloadFunctionRuntimeModule,
   CompatGetDefaultExportRuntimeModule, CreateFakeNamespaceObjectRuntimeModule,
   CreateScriptUrlRuntimeModule, DefinePropertyGettersRuntimeModule, EnsureChunkRuntimeModule,
-  GetChunkFilenameRuntimeModule, GetChunkUpdateFilenameRuntimeModule, GetFullHashRuntimeModule,
-  GetMainFilenameRuntimeModule, GetTrustedTypesPolicyRuntimeModule, GlobalRuntimeModule,
-  HarmonyModuleDecoratorRuntimeModule, HasOwnPropertyRuntimeModule, LoadScriptRuntimeModule,
-  MakeNamespaceObjectRuntimeModule, NodeModuleDecoratorRuntimeModule, NonceRuntimeModule,
-  OnChunkLoadedRuntimeModule, PublicPathRuntimeModule, RelativeUrlRuntimeModule,
-  RuntimeIdRuntimeModule, SystemContextRuntimeModule,
+  GetChunkFilenameRuntimeModule, GetChunkFilenameType, GetChunkUpdateFilenameRuntimeModule,
+  GetFullHashRuntimeModule, GetMainFilenameRuntimeModule, GetTrustedTypesPolicyRuntimeModule,
+  GlobalRuntimeModule, HarmonyModuleDecoratorRuntimeModule, HasOwnPropertyRuntimeModule,
+  LoadScriptRuntimeModule, MakeNamespaceObjectRuntimeModule, NodeModuleDecoratorRuntimeModule,
+  NonceRuntimeModule, OnChunkLoadedRuntimeModule, PublicPathRuntimeModule,
+  RelativeUrlRuntimeModule, RuntimeIdRuntimeModule, SystemContextRuntimeModule,
 };
 
 static GLOBALS_ON_REQUIRE: Lazy<Vec<RuntimeGlobals>> = Lazy::new(|| {
@@ -314,21 +314,9 @@ fn runtime_requirements_in_tree(
         compilation.add_runtime_module(
           chunk_ukey,
           GetChunkFilenameRuntimeModule::new(
-            "javascript",
-            "javascript",
+            GetChunkFilenameType::Javascript,
             SourceType::JavaScript,
             RuntimeGlobals::GET_CHUNK_SCRIPT_FILENAME.to_string(),
-            |_| false,
-            |chunk, compilation| {
-              Some(
-                get_js_chunk_filename_template(
-                  chunk,
-                  &compilation.options.output,
-                  &compilation.chunk_group_by_ukey,
-                )
-                .clone(),
-              )
-            },
           )
           .boxed(),
         )?;
@@ -337,23 +325,9 @@ fn runtime_requirements_in_tree(
         compilation.add_runtime_module(
           chunk_ukey,
           GetChunkFilenameRuntimeModule::new(
-            "css",
-            "css",
+            GetChunkFilenameType::Css,
             SourceType::Css,
             RuntimeGlobals::GET_CHUNK_CSS_FILENAME.to_string(),
-            |runtime_requirements| {
-              runtime_requirements.contains(RuntimeGlobals::HMR_DOWNLOAD_UPDATE_HANDLERS)
-            },
-            |chunk, compilation| {
-              chunk_has_css(&chunk.ukey, compilation).then(|| {
-                get_css_chunk_filename_template(
-                  chunk,
-                  &compilation.options.output,
-                  &compilation.chunk_group_by_ukey,
-                )
-                .clone()
-              })
-            },
           )
           .boxed(),
         )?;

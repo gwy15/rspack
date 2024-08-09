@@ -2,7 +2,6 @@ use rspack_cacheable::{
   cacheable, cacheable_dyn,
   with::{AsOption, AsRefStr, AsVec},
 };
-use rspack_core::cache::CacheContext;
 use rspack_core::{
   create_exports_object_referenced, module_namespace_promise, DependencyType, ErrorSpan,
   ExportsType, ExtendedReferencedExport, ImportAttributes, ModuleGraph, ReferencedExport,
@@ -95,7 +94,7 @@ impl ImportDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for ImportDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -144,6 +143,7 @@ impl ModuleDependency for ImportDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ImportDependency {
   fn apply(
     &self,

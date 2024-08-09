@@ -3,9 +3,9 @@ use rspack_cacheable::{
   with::{AsRefStr, AsTuple2, AsVec},
 };
 use rspack_core::{
-  cache::CacheContext, property_access, AsContextDependency, Dependency, DependencyCategory,
-  DependencyId, DependencyTemplate, DependencyType, ExtendedReferencedExport, ModuleDependency,
-  ModuleGraph, RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource, UsedName,
+  property_access, AsContextDependency, Dependency, DependencyCategory, DependencyId,
+  DependencyTemplate, DependencyType, ExtendedReferencedExport, ModuleDependency, ModuleGraph,
+  RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource, UsedName,
 };
 use swc_core::atoms::Atom;
 
@@ -35,7 +35,7 @@ impl CommonJsSelfReferenceDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for CommonJsSelfReferenceDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -80,6 +80,7 @@ impl ModuleDependency for CommonJsSelfReferenceDependency {
 
 impl AsContextDependency for CommonJsSelfReferenceDependency {}
 
+#[cacheable_dyn]
 impl DependencyTemplate for CommonJsSelfReferenceDependency {
   fn apply(
     &self,

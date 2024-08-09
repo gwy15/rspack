@@ -1,10 +1,12 @@
 use itertools::Itertools;
+use rspack_cacheable::{cacheable, cacheable_dyn};
 use rspack_core::{
   AsDependency, DependencyTemplate, ExportProvided, TemplateContext, TemplateReplaceSource,
   UsageState, UsedExports, UsedName,
 };
 use swc_core::ecma::atoms::Atom;
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ExportInfoDependency {
   start: u32,
@@ -24,6 +26,7 @@ impl ExportInfoDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ExportInfoDependency {
   fn apply(&self, source: &mut TemplateReplaceSource, context: &mut TemplateContext) {
     let value = self.get_property(context);

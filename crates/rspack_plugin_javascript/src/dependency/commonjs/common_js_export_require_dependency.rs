@@ -1,8 +1,8 @@
 use itertools::Itertools;
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsTuple2};
 use rspack_core::{
-  cache::CacheContext, module_raw, process_export_info, property_access, AsContextDependency,
-  Dependency, DependencyCategory, DependencyId, DependencyTemplate, DependencyType, ErrorSpan,
+  module_raw, process_export_info, property_access, AsContextDependency, Dependency,
+  DependencyCategory, DependencyId, DependencyTemplate, DependencyType, ErrorSpan,
   ExportInfoProvided, ExportNameOrSpec, ExportSpec, ExportsOfExportsSpec, ExportsSpec, ExportsType,
   ExtendedReferencedExport, ModuleDependency, ModuleGraph, ModuleIdentifier, Nullable,
   ReferencedExport, RuntimeGlobals, RuntimeSpec, TemplateContext, TemplateReplaceSource,
@@ -172,7 +172,7 @@ impl CommonJsExportRequireDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for CommonJsExportRequireDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -353,6 +353,7 @@ impl Dependency for CommonJsExportRequireDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for CommonJsExportRequireDependency {
   fn apply(
     &self,

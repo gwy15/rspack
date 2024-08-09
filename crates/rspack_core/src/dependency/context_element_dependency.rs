@@ -1,6 +1,10 @@
 use std::path::Path;
 
 use itertools::Itertools;
+use rspack_cacheable::{
+  cacheable, cacheable_dyn,
+  with::{AsOption, AsRefStr, AsVec},
+};
 use rspack_util::json_stringify;
 use swc_core::ecma::atoms::Atom;
 
@@ -13,6 +17,7 @@ use crate::{DependencyCategory, DependencyId, DependencyType};
 use crate::{ExtendedReferencedExport, ModuleDependency};
 use crate::{ModuleGraph, ReferencedExport, RuntimeSpec};
 
+#[cacheable]
 #[derive(Debug, Clone)]
 pub struct ContextElementDependency {
   pub id: DependencyId,
@@ -24,6 +29,7 @@ pub struct ContextElementDependency {
   pub context: Context,
   pub layer: Option<ModuleLayer>,
   pub resource_identifier: String,
+  #[with(AsOption<AsVec<AsRefStr>>)]
   pub referenced_exports: Option<Vec<Atom>>,
   pub dependency_type: DependencyType,
   pub attributes: Option<ImportAttributes>,
@@ -43,6 +49,7 @@ impl ContextElementDependency {
   }
 }
 
+#[cacheable_dyn]
 impl Dependency for ContextElementDependency {
   fn id(&self) -> &DependencyId {
     &self.id

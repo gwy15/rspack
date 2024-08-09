@@ -11,6 +11,10 @@ use std::sync::Arc;
 use dashmap::DashMap;
 use itertools::Itertools;
 use once_cell::sync::Lazy;
+use rspack_cacheable::{
+  cacheable,
+  with::{AsRefStr, AsVec},
+};
 use rspack_util::atom::Atom;
 use rspack_util::ext::DynHash;
 use rustc_hash::FxHashMap as HashMap;
@@ -1907,9 +1911,10 @@ pub enum RuntimeUsageStateType {
   Used,
 }
 
+#[cacheable]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UsedByExports {
-  Set(HashSet<Atom>),
+  Set(#[with(AsVec<AsRefStr>)] HashSet<Atom>),
   Bool(bool),
 }
 

@@ -1,12 +1,16 @@
+use rspack_cacheable::{cacheable, cacheable_dyn};
+
 use crate::{
   AsDependency, DependencyTemplate, RuntimeGlobals, TemplateContext, TemplateReplaceSource,
 };
 
+#[cacheable]
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub struct RuntimeRequirementsDependency {
   pub runtime_requirements: RuntimeGlobals,
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for RuntimeRequirementsDependency {
   fn apply(
     &self,

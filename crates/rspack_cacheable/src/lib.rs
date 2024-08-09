@@ -22,3 +22,7 @@ pub mod __private {
 
 pub use deserialize::{from_bytes, CacheableDeserializer, DeserializeError};
 pub use serialize::{to_bytes, CacheableSerializer, SerializeError};
+
+pub trait Test {
+  type Inner;
+}

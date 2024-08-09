@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use rspack_cacheable::{cacheable, cacheable_dyn};
-use rspack_core::cache::CacheContext;
 use rspack_core::{AsContextDependency, AsModuleDependency, Dependency};
 use rspack_core::{DependencyId, DependencyLocation};
 use rspack_core::{DependencyTemplate, RuntimeGlobals, TemplateContext};
@@ -24,7 +23,7 @@ impl RequireHeaderDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for RequireHeaderDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -34,6 +33,7 @@ impl Dependency for RequireHeaderDependency {
 impl AsModuleDependency for RequireHeaderDependency {}
 impl AsContextDependency for RequireHeaderDependency {}
 
+#[cacheable_dyn]
 impl DependencyTemplate for RequireHeaderDependency {
   fn apply(
     &self,

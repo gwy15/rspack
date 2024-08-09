@@ -8,16 +8,15 @@ use rspack_cacheable::{
 };
 use rspack_collections::IdentifierSet;
 use rspack_core::{
-  cache::CacheContext, create_exports_object_referenced, create_no_exports_referenced,
-  filter_runtime, get_exports_type, process_export_info, property_access, property_name,
-  string_of_used_name, AsContextDependency, ConditionalInitFragment, ConnectionState, Dependency,
-  DependencyCategory, DependencyCondition, DependencyId, DependencyTemplate, DependencyType,
-  ErrorSpan, ExportInfoId, ExportInfoProvided, ExportNameOrSpec, ExportPresenceMode, ExportSpec,
-  ExportsInfoId, ExportsOfExportsSpec, ExportsSpec, ExportsType, ExtendedReferencedExport,
-  HarmonyExportInitFragment, ImportAttributes, InitFragmentExt, InitFragmentKey, InitFragmentStage,
-  JavascriptParserOptions, ModuleDependency, ModuleGraph, ModuleIdentifier, NormalInitFragment,
-  RuntimeCondition, RuntimeGlobals, RuntimeSpec, Template, TemplateContext, TemplateReplaceSource,
-  UsageState, UsedName,
+  create_exports_object_referenced, create_no_exports_referenced, filter_runtime, get_exports_type,
+  process_export_info, property_access, property_name, string_of_used_name, AsContextDependency,
+  ConditionalInitFragment, ConnectionState, Dependency, DependencyCategory, DependencyCondition,
+  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ExportInfoId, ExportInfoProvided,
+  ExportNameOrSpec, ExportPresenceMode, ExportSpec, ExportsInfoId, ExportsOfExportsSpec,
+  ExportsSpec, ExportsType, ExtendedReferencedExport, HarmonyExportInitFragment, ImportAttributes,
+  InitFragmentExt, InitFragmentKey, InitFragmentStage, JavascriptParserOptions, ModuleDependency,
+  ModuleGraph, ModuleIdentifier, NormalInitFragment, RuntimeCondition, RuntimeGlobals, RuntimeSpec,
+  Template, TemplateContext, TemplateReplaceSource, UsageState, UsedName,
 };
 use rspack_error::{
   miette::{MietteDiagnostic, Severity},
@@ -1024,6 +1023,7 @@ pub struct DiscoverActiveExportsFromOtherStarExportsRet<'a> {
   pub dependency_index: usize,
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for HarmonyExportImportedSpecifierDependency {
   fn apply(
     &self,
@@ -1062,7 +1062,7 @@ impl DependencyTemplate for HarmonyExportImportedSpecifierDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for HarmonyExportImportedSpecifierDependency {
   fn id(&self) -> &DependencyId {
     &self.id

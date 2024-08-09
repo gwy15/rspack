@@ -1,8 +1,7 @@
 use rspack_cacheable::{cacheable, cacheable_dyn, with::AsRefStr};
 use rspack_core::{
-  cache::CacheContext, module_id, AsContextDependency, Dependency, DependencyCategory,
-  DependencyId, DependencyTemplate, DependencyType, ErrorSpan, ModuleDependency, TemplateContext,
-  TemplateReplaceSource,
+  module_id, AsContextDependency, Dependency, DependencyCategory, DependencyId, DependencyTemplate,
+  DependencyType, ErrorSpan, ModuleDependency, TemplateContext, TemplateReplaceSource,
 };
 use swc_core::ecma::atoms::Atom;
 
@@ -29,7 +28,7 @@ impl ModuleHotAcceptDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for ModuleHotAcceptDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -66,6 +65,7 @@ impl ModuleDependency for ModuleHotAcceptDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for ModuleHotAcceptDependency {
   fn apply(
     &self,

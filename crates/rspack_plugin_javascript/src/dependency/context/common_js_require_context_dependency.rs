@@ -1,5 +1,4 @@
 use rspack_cacheable::{cacheable, cacheable_dyn};
-use rspack_core::cache::CacheContext;
 use rspack_core::{AsModuleDependency, ContextDependency};
 use rspack_core::{ContextOptions, Dependency, TemplateReplaceSource};
 use rspack_core::{DependencyCategory, DependencyId, DependencyTemplate};
@@ -45,7 +44,7 @@ impl CommonJsRequireContextDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for CommonJsRequireContextDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -94,6 +93,7 @@ impl ContextDependency for CommonJsRequireContextDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for CommonJsRequireContextDependency {
   fn apply(
     &self,

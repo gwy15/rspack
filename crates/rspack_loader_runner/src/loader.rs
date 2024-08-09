@@ -12,6 +12,7 @@ use async_trait::async_trait;
 use derivative::Derivative;
 use once_cell::sync::Lazy;
 use regex::Regex;
+use rspack_cacheable::cacheable_dyn;
 use rspack_collections::{Identifiable, Identifier};
 use rspack_error::Result;
 use rspack_util::identifier::strip_zero_width_space_for_fragment;
@@ -140,6 +141,7 @@ impl<C> Identifiable for LoaderItem<C> {
   }
 }
 
+#[cacheable_dyn]
 #[async_trait]
 pub trait Loader<Context = ()>: Identifiable + Send + Sync {
   async fn run(&self, _loader_context: &mut LoaderContext<Context>) -> Result<()> {

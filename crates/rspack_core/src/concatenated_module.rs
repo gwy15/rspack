@@ -57,15 +57,19 @@ pub struct ConcatenatedModuleHooks {
   pub exports_definitions: ConcatenatedModuleExportsDefinitionsHook,
 }
 
+#[rspack_cacheable::cacheable]
 #[derive(Debug)]
 pub struct RootModuleContext {
   pub id: ModuleIdentifier,
   pub readable_identifier: String,
   pub name_for_condition: Option<Box<str>>,
   pub lib_indent: Option<String>,
-  pub resolve_options: Option<Box<Resolve>>,
-  pub code_generation_dependencies: Option<Vec<Box<dyn ModuleDependency>>>,
-  pub presentational_dependencies: Option<Vec<Box<dyn DependencyTemplate>>>,
+  #[with(rspack_cacheable::with::Skip)]
+  pub resolve_options: Option<Box<Resolve>>, // TODO check
+  #[with(rspack_cacheable::with::Skip)]
+  pub code_generation_dependencies: Option<Vec<Box<dyn ModuleDependency>>>, // TODO check
+  #[with(rspack_cacheable::with::Skip)]
+  pub presentational_dependencies: Option<Vec<Box<dyn DependencyTemplate>>>, // TODO check
   pub context: Option<Context>,
   pub layer: Option<ModuleLayer>,
   pub side_effect_connection_state: ConnectionState,
@@ -106,6 +110,7 @@ pub enum BindingType {
   Symbol,
 }
 
+#[rspack_cacheable::cacheable]
 #[derive(Debug, Clone)]
 pub struct ConcatenatedInnerModule {
   pub id: ModuleIdentifier,
@@ -347,6 +352,7 @@ impl ModuleInfo {
 }
 
 #[impl_source_map_config]
+#[rspack_cacheable::cacheable]
 #[derive(Debug)]
 pub struct ConcatenatedModule {
   id: ModuleIdentifier,
@@ -357,10 +363,11 @@ pub struct ConcatenatedModule {
 
   blocks: Vec<AsyncDependenciesBlockIdentifier>,
   dependencies: Vec<DependencyId>,
-
+  #[with(rspack_cacheable::with::Skip)]
   cached_source_sizes: DashMap<SourceType, f64, BuildHasherDefault<FxHasher>>,
-
+  #[with(rspack_cacheable::with::Skip)]
   diagnostics: Mutex<Vec<Diagnostic>>,
+  #[with(rspack_cacheable::with::Skip)]
   cached_hash: OnceCell<u64>,
   build_info: Option<BuildInfo>,
 }
@@ -458,6 +465,7 @@ impl DependenciesBlock for ConcatenatedModule {
   }
 }
 
+#[rspack_cacheable::cacheable_dyn(crate::cache::CacheContext)]
 #[async_trait::async_trait]
 impl Module for ConcatenatedModule {
   fn module_type(&self) -> &ModuleType {

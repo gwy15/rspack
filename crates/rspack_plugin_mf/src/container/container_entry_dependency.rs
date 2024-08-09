@@ -3,8 +3,8 @@ use rspack_cacheable::{
   with::{AsTuple2, AsVec},
 };
 use rspack_core::{
-  cache::CacheContext, AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory,
-  DependencyId, DependencyType, ModuleDependency,
+  AsContextDependency, AsDependencyTemplate, Dependency, DependencyCategory, DependencyId,
+  DependencyType, ModuleDependency,
 };
 
 use crate::ExposeOptions;
@@ -40,7 +40,7 @@ impl ContainerEntryDependency {
   }
 }
 
-#[cacheable_dyn(CacheContext)]
+#[cacheable_dyn]
 impl Dependency for ContainerEntryDependency {
   fn id(&self) -> &DependencyId {
     &self.id

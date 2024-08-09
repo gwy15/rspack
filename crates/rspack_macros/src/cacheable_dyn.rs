@@ -4,6 +4,7 @@ use syn::{parse_quote, spanned::Spanned, GenericParam, Ident, ItemImpl, ItemTrai
 
 pub fn impl_trait(mut input: ItemTrait) -> TokenStream {
   let trait_ident = &input.ident;
+  let trait_vis = &input.vis;
   let generic_params = input.generics.params.iter().map(|p| {
     // remove default value
     let mut p = p.clone();
@@ -50,7 +51,7 @@ pub fn impl_trait(mut input: ItemTrait) -> TokenStream {
                 type Metadata = ptr_meta::DynMetadata<Self>;
             }
 
-            trait #deserialize_trait_ident #ty_generics: DeserializeDyn<dyn #trait_ident #ty_generics> {}
+            #trait_vis trait #deserialize_trait_ident #ty_generics: DeserializeDyn<dyn #trait_ident #ty_generics> {}
             impl #ty_generics ptr_meta::Pointee for dyn #deserialize_trait_ident #ty_generics {
                 type Metadata = ptr_meta::DynMetadata<Self>;
             }
@@ -180,16 +181,16 @@ pub fn impl_impl(input: ItemImpl) -> TokenStream {
 
           use rspack_cacheable::__private::{
               inventory, ptr_meta,
-              rkyv::{ArchiveUnsized, Archived, Deserialize},
+              rkyv::{ArchiveUnsized, Deserialize},
               rkyv_dyn::{self, register_impl},
           };
           use rspack_cacheable::{r#dyn::DeserializeDyn, CacheableDeserializer, DeserializeError};
 
           register_impl!(#archived_target_ident as <dyn #trait_ident as ArchiveUnsized>::Archived);
 
-          impl DeserializeDyn<dyn #trait_ident> for Archived<#target_ident>
+          impl DeserializeDyn<dyn #trait_ident> for #archived_target_ident
           where
-              Archived<#target_ident>: Deserialize<#target_ident, CacheableDeserializer>,
+              #archived_target_ident: Deserialize<#target_ident, CacheableDeserializer>,
           {
               unsafe fn deserialize_dyn(
                   &self,

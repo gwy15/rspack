@@ -73,7 +73,7 @@ pub fn cacheable(
   if let Some(with) = args.with {
     cacheable::impl_cacheable_with(tokens, with)
   } else {
-    cacheable::impl_cacheable(tokens, args.type_name)
+    cacheable::impl_cacheable(tokens)
   }
 }
 
