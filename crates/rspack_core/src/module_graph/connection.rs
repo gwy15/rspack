@@ -2,10 +2,15 @@ use std::hash::Hash;
 use std::sync::atomic::AtomicU32;
 use std::sync::atomic::Ordering::Relaxed;
 
-use crate::{DependencyId, ModuleGraph, ModuleIdentifier, RuntimeSpec};
+use rspack_cacheable::cacheable;
+
+use crate::{
+  AsyncDependenciesBlockIdentifier, DependencyId, ModuleGraph, ModuleIdentifier, RuntimeSpec,
+};
 
 pub static CONNECTION_ID: AtomicU32 = AtomicU32::new(0);
 
+#[cacheable]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ConnectionId(u32);
 
@@ -33,6 +38,7 @@ impl From<u32> for ConnectionId {
   }
 }
 
+#[cacheable]
 #[derive(Debug, Clone, Eq)]
 pub struct ModuleGraphConnection {
   pub id: ConnectionId,
@@ -127,6 +133,7 @@ impl ModuleGraphConnection {
   }
 }
 
+#[rspack_cacheable::cacheable]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ConnectionState {
   Bool(bool),

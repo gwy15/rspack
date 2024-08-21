@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use rspack_cacheable::{cacheable, cacheable_dyn, with::AsTuple2};
 use rspack_core::{
   module_raw, process_export_info, property_access, AsContextDependency, Compilation, Dependency,
   DependencyCategory, DependencyId, DependencyTemplate, DependencyType, ErrorSpan,
@@ -12,6 +13,7 @@ use swc_core::atoms::Atom;
 
 use super::ExportsBase;
 
+#[cacheable]
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct CommonJsExportRequireDependency {
@@ -19,6 +21,7 @@ pub struct CommonJsExportRequireDependency {
   request: String,
   optional: bool,
   span: Option<ErrorSpan>,
+  #[with(AsTuple2)]
   range: (u32, u32),
   base: ExportsBase,
   names: Vec<Atom>,
@@ -162,6 +165,7 @@ impl CommonJsExportRequireDependency {
   }
 }
 
+#[cacheable_dyn]
 impl Dependency for CommonJsExportRequireDependency {
   fn id(&self) -> &DependencyId {
     &self.id
@@ -337,6 +341,7 @@ impl Dependency for CommonJsExportRequireDependency {
   }
 }
 
+#[cacheable_dyn]
 impl DependencyTemplate for CommonJsExportRequireDependency {
   fn apply(
     &self,
@@ -442,6 +447,7 @@ impl DependencyTemplate for CommonJsExportRequireDependency {
   }
 }
 
+#[cacheable_dyn]
 impl ModuleDependency for CommonJsExportRequireDependency {
   fn request(&self) -> &str {
     &self.request
