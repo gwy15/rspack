@@ -25,6 +25,10 @@ impl Dependency for RequireHeaderDependency {
   fn id(&self) -> &DependencyId {
     &self.id
   }
+
+  fn could_affect_referencing_module(&self) -> rspack_core::AffectType {
+    rspack_core::AffectType::False
+  }
 }
 
 impl AsModuleDependency for RequireHeaderDependency {}
