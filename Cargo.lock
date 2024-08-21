@@ -3168,6 +3168,7 @@ dependencies = [
  "serde_json",
  "small-map",
  "smallvec",
+ "smol_str",
  "sugar_path",
  "swc_core",
  "swc_node_comments",
